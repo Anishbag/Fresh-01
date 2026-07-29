@@ -6,10 +6,23 @@ import Employee from "../../models/Employee.js";
 // ==========================================
 export const mySalarySlips = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
+
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
+
+
+
+
+
+
 
     if (!employee) {
       return res.status(404).json({
@@ -43,10 +56,22 @@ export const mySalarySlips = async (req, res) => {
 // ==========================================
 export const viewSalarySlip = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
+
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
+
+
+
+
+
 
     if (!employee) {
       return res.status(404).json({
@@ -58,10 +83,7 @@ export const viewSalarySlip = async (req, res) => {
     const salary = await SalarySlip.findOne({
       _id: req.params.id,
       employee: employee._id,
-    }).populate(
-      "employee",
-      "employeeId firstName lastName department"
-    );
+    }).populate("employee", "employeeId fullName department");
 
     if (!salary) {
       return res.status(404).json({

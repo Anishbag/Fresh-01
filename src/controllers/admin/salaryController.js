@@ -184,9 +184,9 @@ export const exportSalary = async (req, res) => {
 
     const salaries = await SalarySlip.find()
       .populate(
-        "employee",
-        "employeeId firstName lastName department"
-      );
+    "employee",
+    "employeeId fullName department salary"
+)
 
     res.json({
       success: true,
