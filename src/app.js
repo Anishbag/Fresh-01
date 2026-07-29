@@ -15,6 +15,7 @@ import employeeSalaryRoutes from "./routes/employee/salaryRoutes.js";
 import adminSalaryRoutes from "./routes/admin/salaryRoutes.js";
 import adminDashboardRoutes from "./routes/admin/dashboardRoutes.js";
 import employeeDashboardRoutes from "./routes/employee/dashboardRoutes.js";
+import adminProjectRoutes from "./routes/admin/projectRoutes.js";
 
 const app = express();
 
@@ -45,6 +46,8 @@ app.use("/api/leaves", employeeLeaveRoutes);
 app.use("/api/admin/leaves", adminLeaveRoutes);
 
 app.use("/api/salary", employeeSalaryRoutes);
+
+app.use("/api/admin/projects", adminProjectRoutes);
 
 app.use("/api/admin/salary", adminSalaryRoutes);
 app.use(
