@@ -3,9 +3,14 @@ import Leave from "../../models/Leave.js";
 
 export const applyLeave = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
 
     if (!employee) {
@@ -15,12 +20,7 @@ export const applyLeave = async (req, res) => {
       });
     }
 
-    const {
-      leaveType,
-      fromDate,
-      toDate,
-      reason,
-    } = req.body;
+    const { leaveType, fromDate, toDate, reason } = req.body;
 
     const leave = await Leave.create({
       employee: employee._id,
@@ -35,7 +35,6 @@ export const applyLeave = async (req, res) => {
       message: "Leave applied successfully",
       leave,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -61,7 +60,6 @@ export const myLeaveHistory = async (req, res) => {
       success: true,
       leaves,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
