@@ -3,9 +3,14 @@ import Employee from "../../models/Employee.js";
 
 export const saveDailyWork = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
 
     if (!employee) {
@@ -15,12 +20,7 @@ export const saveDailyWork = async (req, res) => {
       });
     }
 
-    const {
-      project,
-      workDate,
-      plan,
-      endOfDayStatus,
-    } = req.body;
+    const { project, workDate, plan, endOfDayStatus } = req.body;
 
     const report = await DailyWorkStatus.create({
       employee: employee._id,
@@ -45,9 +45,14 @@ export const saveDailyWork = async (req, res) => {
 
 export const getMyReports = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
 
     const reports = await DailyWorkStatus.find({
