@@ -61,9 +61,14 @@ export const checkIn = async (req, res) => {
 // Check Out
 export const checkOut = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
 
     if (!employee) {
@@ -96,8 +101,7 @@ export const checkOut = async (req, res) => {
 
     attendance.checkOut = new Date();
 
-    const diff =
-      (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60);
+    const diff = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60);
 
     attendance.workingHours = Number(diff.toFixed(2));
 
@@ -119,9 +123,14 @@ export const checkOut = async (req, res) => {
 // Attendance History
 export const attendanceHistory = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
 
     const history = await Attendance.find({
