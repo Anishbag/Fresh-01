@@ -15,10 +15,19 @@ export const adminDashboard = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     // Employees
+    // const totalEmployees = await Employee.countDocuments({
+    //   isDeleted: false,
+    //   isActive: true,
+    // });
+
+
+
     const totalEmployees = await Employee.countDocuments({
-      isDeleted: false,
-      isActive: true,
+      status: "Active",
     });
+
+
+
 
     // Active Projects
     const activeProjects = await Project.countDocuments({
@@ -47,14 +56,8 @@ export const adminDashboard = async (req, res) => {
 
     // Recent Daily Work
     const recentWorkStatus = await DailyWorkStatus.find()
-      .populate(
-        "employee",
-        "firstName lastName employeeId"
-      )
-      .populate(
-        "project",
-        "projectName"
-      )
+      .populate("employee", "fullName employeeId")
+      .populate("project", "projectName")
       .sort({
         workDate: -1,
       })
