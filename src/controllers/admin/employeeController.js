@@ -62,10 +62,25 @@ export const createEmployee = async (req, res) => {
     });
 
     // Generate Employee ID
-    const totalEmployee = await Employee.countDocuments();
+    // const totalEmployee = await Employee.countDocuments();
 
-    const employeeId =
-      "EMP" + String(totalEmployee + 1).padStart(4, "0");
+    // const employeeId =
+    //   "EMP" + String(totalEmployee + 1).padStart(4, "0");
+
+
+    // Generate Employee ID
+const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
+
+let employeeId = "EMP0001";
+
+if (lastEmployee && lastEmployee.employeeId) {
+  const lastNumber = parseInt(lastEmployee.employeeId.replace("EMP", ""), 10);
+
+  employeeId = "EMP" + String(lastNumber + 1).padStart(4, "0");
+}
+
+
+
 
     // Create Employee Profile
     const employee = await Employee.create({
