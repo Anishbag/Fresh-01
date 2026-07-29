@@ -3,9 +3,14 @@ import WorkFromHome from "../../models/WorkFromHome.js";
 
 export const applyWFH = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
 
     if (!employee) {
@@ -39,10 +44,21 @@ export const applyWFH = async (req, res) => {
 
 export const myWFHHistory = async (req, res) => {
   try {
-    const employee = await Employee.findOne({
-      userId: req.user._id,
-      isDeleted: false,
-    });
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
+
+
+     const employee = await Employee.findOne({
+       userId: req.user._id,
+       status: "Active",
+     });
+
+
+
+
 
     const requests = await WorkFromHome.find({
       employee: employee._id,
