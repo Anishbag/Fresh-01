@@ -31,6 +31,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/admin/employees", employeeRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/daily-work", employeeDailyWorkRoutes);
 
