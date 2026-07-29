@@ -55,6 +55,18 @@ export const getMyReports = async (req, res) => {
       status: "Active",
     });
 
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+
+
+
+
     const reports = await DailyWorkStatus.find({
       employee: employee._id,
     })
