@@ -45,9 +45,14 @@ export const applyLeave = async (req, res) => {
 
 export const myLeaveHistory = async (req, res) => {
   try {
-    const employee = await Employee.findOne({
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
+      const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
 
     const leaves = await Leave.find({
