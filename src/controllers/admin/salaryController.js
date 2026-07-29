@@ -16,9 +16,13 @@ export const generateSalary = async (req, res) => {
       });
     }
 
+    // const employees = await Employee.find({
+    //   isDeleted: false,
+    //   isActive: true,
+    // });
+
     const employees = await Employee.find({
-      isDeleted: false,
-      isActive: true,
+      status: "Active",
     });
 
     const configs = await SalaryConfig.find();
@@ -104,7 +108,6 @@ export const generateSalary = async (req, res) => {
       generated,
       skipped,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -126,10 +129,7 @@ export const getSalarySlips = async (req, res) => {
     if (year) filter.year = year;
 
     const salaries = await SalarySlip.find(filter)
-      .populate(
-        "employee",
-        "employeeId firstName lastName department salary"
-      )
+      .populate("employee", "employeeId firstName lastName department salary")
       .sort({
         createdAt: -1,
       });
@@ -139,7 +139,6 @@ export const getSalarySlips = async (req, res) => {
       total: salaries.length,
       salaries,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -153,8 +152,9 @@ export const getSalarySlips = async (req, res) => {
 // =========================================
 export const getSalarySlip = async (req, res) => {
   try {
-    const salary = await SalarySlip.findById(req.params.id)
-      .populate("employee");
+    const salary = await SalarySlip.findById(req.params.id).populate(
+      "employee",
+    );
 
     if (!salary) {
       return res.status(404).json({
@@ -167,7 +167,6 @@ export const getSalarySlip = async (req, res) => {
       success: true,
       salary,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -181,18 +180,15 @@ export const getSalarySlip = async (req, res) => {
 // =========================================
 export const exportSalary = async (req, res) => {
   try {
-
-    const salaries = await SalarySlip.find()
-      .populate(
-    "employee",
-    "employeeId fullName department salary"
-)
+    const salaries = await SalarySlip.find().populate(
+      "employee",
+      "employeeId fullName department salary",
+    );
 
     res.json({
       success: true,
       salaries,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
