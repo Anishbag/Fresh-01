@@ -11,9 +11,14 @@ import DailyWorkStatus from "../../models/DailyWorkStatus.js";
 // ==========================================
 export const employeeDashboard = async (req, res) => {
   try {
+    // const employee = await Employee.findOne({
+    //   userId: req.user._id,
+    //   isDeleted: false,
+    // });
+
     const employee = await Employee.findOne({
       userId: req.user._id,
-      isDeleted: false,
+      status: "Active",
     });
 
     if (!employee) {
@@ -71,13 +76,10 @@ export const employeeDashboard = async (req, res) => {
 
       todayPlan,
     });
-
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
