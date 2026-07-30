@@ -11,18 +11,10 @@ export const mySalarySlips = async (req, res) => {
     //   isDeleted: false,
     // });
 
-
-
     const employee = await Employee.findOne({
       userId: req.user._id,
       status: "Active",
     });
-
-
-
-
-
-
 
     if (!employee) {
       return res.status(404).json({
@@ -61,17 +53,10 @@ export const viewSalarySlip = async (req, res) => {
     //   isDeleted: false,
     // });
 
-
-
     const employee = await Employee.findOne({
       userId: req.user._id,
       status: "Active",
     });
-
-
-
-
-
 
     if (!employee) {
       return res.status(404).json({

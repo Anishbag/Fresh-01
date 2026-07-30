@@ -87,66 +87,54 @@ export const generateSalary = async (req, res) => {
 
       // const netSalary = grossSalary + totalEarnings - totalDeductions;
 
+      const grossSalary = Number(employee.salary || 0);
 
+      let earnings = [];
+      let deductions = [];
 
-const grossSalary = Number(employee.salary || 0);
+      let totalEarnings = 0;
+      let totalDeductions = 0;
 
-let earnings = [];
-let deductions = [];
+      // ==========================
+      // Calculate Earnings & Deductions
+      // ==========================
+      for (const config of configs) {
+        let amount = 0;
 
-let totalEarnings = 0;
-let totalDeductions = 0;
+        if (config.mode === "% of gross") {
+          amount = (grossSalary * config.value) / 100;
+        } else {
+          amount = Number(config.value);
+        }
 
-// ==========================
-// Calculate Earnings & Deductions
-// ==========================
-for (const config of configs) {
-  let amount = 0;
+        amount = Number(amount.toFixed(2));
 
-  if (config.mode === "% of gross") {
-    amount = (grossSalary * config.value) / 100;
-  } else {
-    amount = Number(config.value);
-  }
+        if (config.type === "Earning") {
+          earnings.push({
+            label: config.label,
+            amount,
+          });
 
-  amount = Number(amount.toFixed(2));
+          totalEarnings += amount;
+        } else {
+          deductions.push({
+            label: config.label,
+            amount,
+          });
 
-  if (config.type === "Earning") {
-    earnings.push({
-      label: config.label,
-      amount,
-    });
+          totalDeductions += amount;
+        }
+      }
 
-    totalEarnings += amount;
-  } else {
-    deductions.push({
-      label: config.label,
-      amount,
-    });
+      // ==========================
+      // Salary Calculation
+      // ==========================
 
-    totalDeductions += amount;
-  }
-}
+      // Gross Salary Breakdown
+      const totalSalary = Number(totalEarnings.toFixed(2));
 
-// ==========================
-// Salary Calculation
-// ==========================
-
-// Gross Salary Breakdown
-const totalSalary = Number(totalEarnings.toFixed(2));
-
-// Final Payable Salary
-const netSalary = Number(
-  (totalSalary - totalDeductions).toFixed(2)
-);
-
-
-
-
-
-
-
-
+      // Final Payable Salary
+      const netSalary = Number((totalSalary - totalDeductions).toFixed(2));
 
       // await SalarySlip.create({
       //   employee: employee._id,
@@ -159,7 +147,6 @@ const netSalary = Number(
       //   totalDeductions,
       //   netSalary,
       // });
-
 
       await SalarySlip.create({
         employee: employee._id,
@@ -178,12 +165,6 @@ const netSalary = Number(
 
         netSalary,
       });
-
-
-
-
-
-
 
       generated++;
     }
@@ -205,26 +186,85 @@ const netSalary = Number(
 // =========================================
 // Get All Salary Slips
 // =========================================
+// export const getSalarySlips = async (req, res) => {
+//   try {
+//     const { month, year } = req.query;
+
+//     const filter = {};
+
+//     if (month) filter.month = month;
+//     if (year) filter.year = year;
+
+//     const salaries = await SalarySlip.find(filter)
+//       .populate("employee", "employeeId firstName lastName department salary")
+//       .sort({
+//         createdAt: -1,
+//       });
+
+//     res.json({
+//       success: true,
+//       total: salaries.length,
+//       salaries,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+
+
+
+
 export const getSalarySlips = async (req, res) => {
   try {
     const { month, year } = req.query;
 
-    const filter = {};
+    if (!month || !year) {
+      return res.status(400).json({
+        success: false,
+        message: "Month and year are required",
+      });
+    }
 
-    if (month) filter.month = month;
-    if (year) filter.year = year;
+    const employees = await Employee.find({
+      status: "Active",
+    });
 
-    const salaries = await SalarySlip.find(filter)
-      .populate("employee", "employeeId firstName lastName department salary")
-      .sort({
-        createdAt: -1,
+    const result = [];
+
+    for (const employee of employees) {
+      const slip = await SalarySlip.findOne({
+        employee: employee._id,
+        month,
+        year,
       });
 
-    res.json({
+      result.push({
+        employeeId: employee.employeeId,
+        employeeIdMongo: employee._id,
+        fullName: employee.fullName,
+        department: employee.department,
+        role: employee.role,
+        grossSalary: employee.salary,
+
+        generated: !!slip,
+
+        salarySlipId: slip ? slip._id : null,
+
+        netSalary: slip ? slip.netSalary : null,
+      });
+    }
+
+    res.status(200).json({
       success: true,
-      total: salaries.length,
-      salaries,
+      total: result.length,
+      employees: result,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -253,6 +293,117 @@ export const getSalarySlip = async (req, res) => {
       success: true,
       salary,
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+
+
+export const generateSingleSalary = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { month, year } = req.body;
+
+    if (!month || !year) {
+      return res.status(400).json({
+        success: false,
+        message: "Month and year are required",
+      });
+    }
+
+    const employee = await Employee.findOne({
+      _id: employeeId,
+      status: "Active",
+    });
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    const alreadyGenerated = await SalarySlip.findOne({
+      employee: employee._id,
+      month,
+      year,
+    });
+
+    if (alreadyGenerated) {
+      return res.status(400).json({
+        success: false,
+        message: "Salary already generated",
+      });
+    }
+
+    const configs = await SalaryConfig.find();
+
+    const grossSalary = Number(employee.salary);
+
+    let earnings = [];
+    let deductions = [];
+    let totalEarnings = 0;
+    let totalDeductions = 0;
+
+    for (const config of configs) {
+      let amount = 0;
+
+      if (config.mode === "% of gross") {
+        amount = (grossSalary * config.value) / 100;
+      } else {
+        amount = Number(config.value);
+      }
+
+      amount = Number(amount.toFixed(2));
+
+      if (config.type === "Earning") {
+        earnings.push({
+          label: config.label,
+          amount,
+        });
+
+        totalEarnings += amount;
+      } else {
+        deductions.push({
+          label: config.label,
+          amount,
+        });
+
+        totalDeductions += amount;
+      }
+    }
+
+    const totalSalary = Number(totalEarnings.toFixed(2));
+
+    const netSalary = Number(
+      (totalSalary - totalDeductions).toFixed(2)
+    );
+
+    const salary = await SalarySlip.create({
+      employee: employee._id,
+      month,
+      year,
+      grossSalary,
+      earnings,
+      deductions,
+      totalEarnings,
+      totalDeductions,
+      totalSalary,
+      netSalary,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Salary generated successfully",
+      salary,
+    });
+
   } catch (error) {
     res.status(500).json({
       success: false,
