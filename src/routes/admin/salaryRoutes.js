@@ -24,9 +24,12 @@ router.use(authorize("admin"));
 
 router.get("/config", getSalaryConfigurations);
 
-router.post("/config", createSalaryConfiguration);
+// router.post("/config", createSalaryConfiguration);
 
-router.put("/config/:id", updateSalaryConfiguration);
+// router.put("/config/:id", updateSalaryConfiguration);
+
+
+router.post("/config", saveSalaryConfigurations);
 
 router.delete("/config/:id", deleteSalaryConfiguration);
 
