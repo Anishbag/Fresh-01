@@ -16,7 +16,7 @@ const salaryConfigSchema = new mongoose.Schema(
 
     mode: {
       type: String,
-      enum: ["% of gross", "Fixed ₹"],
+      enum: ["% of gross", "Fixed"],
       default: "% of gross",
     },
 
@@ -28,10 +28,7 @@ const salaryConfigSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export default mongoose.model(
-  "SalaryConfig",
-  salaryConfigSchema
-);
+export default mongoose.model("SalaryConfig", salaryConfigSchema);
