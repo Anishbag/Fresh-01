@@ -56,10 +56,15 @@ const salarySlipSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
+    totalSalary: {
+      type: Number,
+      required: true,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 salarySlipSchema.index(

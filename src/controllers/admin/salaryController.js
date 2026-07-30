@@ -49,55 +49,141 @@ export const generateSalary = async (req, res) => {
         continue;
       }
 
-      const grossSalary = employee.salary || 0;
+      // const grossSalary = employee.salary || 0;
 
-      let earnings = [];
-      let deductions = [];
+      // let earnings = [];
+      // let deductions = [];
 
-      let totalEarnings = 0;
-      let totalDeductions = 0;
+      // let totalEarnings = 0;
+      // let totalDeductions = 0;
 
-      for (const config of configs) {
-        let amount = 0;
+      // for (const config of configs) {
+      //   let amount = 0;
 
-        if (config.mode === "% of gross") {
-          amount = (grossSalary * config.value) / 100;
-        } else {
-          amount = config.value;
-        }
+      //   if (config.mode === "% of gross") {
+      //     amount = (grossSalary * config.value) / 100;
+      //   } else {
+      //     amount = config.value;
+      //   }
 
-        amount = Number(amount.toFixed(2));
+      //   amount = Number(amount.toFixed(2));
 
-        if (config.type === "Earning") {
-          earnings.push({
-            label: config.label,
-            amount,
-          });
+      //   if (config.type === "Earning") {
+      //     earnings.push({
+      //       label: config.label,
+      //       amount,
+      //     });
 
-          totalEarnings += amount;
-        } else {
-          deductions.push({
-            label: config.label,
-            amount,
-          });
+      //     totalEarnings += amount;
+      //   } else {
+      //     deductions.push({
+      //       label: config.label,
+      //       amount,
+      //     });
 
-          totalDeductions += amount;
-        }
-      }
+      //     totalDeductions += amount;
+      //   }
+      // }
 
-      const netSalary = grossSalary + totalEarnings - totalDeductions;
+      // const netSalary = grossSalary + totalEarnings - totalDeductions;
+
+
+
+const grossSalary = Number(employee.salary || 0);
+
+let earnings = [];
+let deductions = [];
+
+let totalEarnings = 0;
+let totalDeductions = 0;
+
+// ==========================
+// Calculate Earnings & Deductions
+// ==========================
+for (const config of configs) {
+  let amount = 0;
+
+  if (config.mode === "% of gross") {
+    amount = (grossSalary * config.value) / 100;
+  } else {
+    amount = Number(config.value);
+  }
+
+  amount = Number(amount.toFixed(2));
+
+  if (config.type === "Earning") {
+    earnings.push({
+      label: config.label,
+      amount,
+    });
+
+    totalEarnings += amount;
+  } else {
+    deductions.push({
+      label: config.label,
+      amount,
+    });
+
+    totalDeductions += amount;
+  }
+}
+
+// ==========================
+// Salary Calculation
+// ==========================
+
+// Gross Salary Breakdown
+const totalSalary = Number(totalEarnings.toFixed(2));
+
+// Final Payable Salary
+const netSalary = Number(
+  (totalSalary - totalDeductions).toFixed(2)
+);
+
+
+
+
+
+
+
+
+
+      // await SalarySlip.create({
+      //   employee: employee._id,
+      //   month,
+      //   year,
+      //   grossSalary,
+      //   earnings,
+      //   deductions,
+      //   totalEarnings,
+      //   totalDeductions,
+      //   netSalary,
+      // });
+
 
       await SalarySlip.create({
         employee: employee._id,
         month,
         year,
+
         grossSalary,
+
         earnings,
         deductions,
+
         totalEarnings,
         totalDeductions,
+
+        totalSalary,
+
         netSalary,
       });
+
+
+
+
+
+
 
       generated++;
     }
