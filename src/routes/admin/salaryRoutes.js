@@ -5,8 +5,8 @@ import authorize from "../../middleware/roleMiddleware.js";
 
 import {
   getSalaryConfigurations,
-  createSalaryConfiguration,
-  updateSalaryConfiguration,
+  saveSalaryConfigurations,
+  
   deleteSalaryConfiguration,
 } from "../../controllers/admin/salaryConfigController.js";
 
