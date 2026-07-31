@@ -1,11 +1,12 @@
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
+import "dotenv/config";
 import dns from "dns";
 
 import app from "./app.js";
 import connectDB from "./config/db.js";
 
 // Load Environment Variables
-dotenv.config();
+// dotenv.config();
 
 // Fix DNS issue (MongoDB Atlas)
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
