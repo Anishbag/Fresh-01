@@ -1,5 +1,6 @@
 import DailyWorkStatus from "../../models/DailyWorkStatus.js";
 import Employee from "../../models/Employee.js";
+import Project from "../../models/Project.js";
 
 export const saveDailyWork = async (req, res) => {
   try {
@@ -21,6 +22,18 @@ export const saveDailyWork = async (req, res) => {
     }
 
     const { project, workDate, plan, endOfDayStatus } = req.body;
+
+    const assignedProject = await Project.findOne({
+      _id: project,
+      assignedEmployees: employee._id,
+    });
+
+    if (!assignedProject) {
+      return res.status(400).json({
+        success: false,
+        message: "You are not assigned to this project",
+      });
+    }
 
     const report = await DailyWorkStatus.create({
       employee: employee._id,
@@ -55,17 +68,12 @@ export const getMyReports = async (req, res) => {
       status: "Active",
     });
 
-
     if (!employee) {
       return res.status(404).json({
         success: false,
         message: "Employee not found",
       });
     }
-
-
-
-
 
     const reports = await DailyWorkStatus.find({
       employee: employee._id,
