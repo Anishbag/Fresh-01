@@ -17,6 +17,7 @@ import adminDashboardRoutes from "./routes/admin/dashboardRoutes.js";
 import employeeDashboardRoutes from "./routes/employee/dashboardRoutes.js";
 import adminProjectRoutes from "./routes/admin/projectRoutes.js";
 import employeeProjectRoutes from "./routes/employee/projectRoutes.js";
+import mailRoutes from "./routes/admin/mailRoutes.js";
 
 
 
@@ -66,5 +67,6 @@ app.use(
 );
 
 app.use("/api/employee/projects", employeeProjectRoutes);
+app.use("/api/admin/mail", mailRoutes);
 
 export default app;
