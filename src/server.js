@@ -4,6 +4,7 @@ import dns from "dns";
 
 import app from "./app.js";
 import connectDB from "./config/db.js";
+import "./cron/attendanceCron.js";
 
 // Load Environment Variables
 // dotenv.config();
