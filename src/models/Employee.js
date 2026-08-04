@@ -94,6 +94,28 @@ const employeeSchema = new mongoose.Schema(
       enum: ["Active", "Inactive"],
       default: "Active",
     },
+
+
+    // New Dynamic field add require by WASS
+
+    customFields: [
+      {
+        _id: false,
+      
+        label: {
+          type: String,
+          required: true,
+        },
+        value: {
+          type: String,
+          default: "",
+        },
+      },
+    
+    ],
+
+
+
   },
   {
     timestamps: true,

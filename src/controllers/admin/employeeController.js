@@ -23,6 +23,7 @@ export const createEmployee = async (req, res) => {
       emergencyContact,
       address,
       status,
+      customFields, //new wass
     } = req.body;
 
     // Validation
@@ -67,20 +68,19 @@ export const createEmployee = async (req, res) => {
     // const employeeId =
     //   "EMP" + String(totalEmployee + 1).padStart(4, "0");
 
-
     // Generate Employee ID
-const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
+    const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
 
-let employeeId = "EMP0001";
+    let employeeId = "EMP0001";
 
-if (lastEmployee && lastEmployee.employeeId) {
-  const lastNumber = parseInt(lastEmployee.employeeId.replace("EMP", ""), 10);
+    if (lastEmployee && lastEmployee.employeeId) {
+      const lastNumber = parseInt(
+        lastEmployee.employeeId.replace("EMP", ""),
+        10,
+      );
 
-  employeeId = "EMP" + String(lastNumber + 1).padStart(4, "0");
-}
-
-
-
+      employeeId = "EMP" + String(lastNumber + 1).padStart(4, "0");
+    }
 
     // Create Employee Profile
     const employee = await Employee.create({
@@ -99,6 +99,7 @@ if (lastEmployee && lastEmployee.employeeId) {
       emergencyContact,
       address,
       status,
+      customFields, // new wass
     });
 
     res.status(201).json({
@@ -115,8 +116,6 @@ if (lastEmployee && lastEmployee.employeeId) {
     });
   }
 };
-
-
 
 /*
     Get All Employees
@@ -165,7 +164,6 @@ export const getEmployees = async (req, res) => {
   }
 };
 
-
 /*
     Get Single Employee
     GET : /api/admin/employees/:id
@@ -196,7 +194,6 @@ export const getEmployeeById = async (req, res) => {
   }
 };
 
-
 /*
     Update Employee
     PUT : /api/admin/employees/:id
@@ -219,6 +216,7 @@ export const updateEmployee = async (req, res) => {
       emergencyContact,
       address,
       status,
+      customFields, // new wass
     } = req.body;
 
     // Find Employee
@@ -276,10 +274,13 @@ export const updateEmployee = async (req, res) => {
     employee.idProof = idProof || employee.idProof;
     employee.pan = pan || employee.pan;
     employee.bankAccount = bankAccount || employee.bankAccount;
-    employee.emergencyContact =
-      emergencyContact || employee.emergencyContact;
+    employee.emergencyContact = emergencyContact || employee.emergencyContact;
     employee.address = address || employee.address;
     employee.status = status || employee.status;
+// new wass
+    if (customFields) {
+      employee.customFields = customFields;
+    }
 
     await employee.save();
 
@@ -297,8 +298,6 @@ export const updateEmployee = async (req, res) => {
     });
   }
 };
-
-
 
 /*
     Delete Employee
