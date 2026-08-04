@@ -34,19 +34,26 @@ const employeeSchema = new mongoose.Schema(
       required: true,
     },
 
+    // role: {
+    //   type: String,
+    //   enum: [
+    //     "Developer",
+    //     "Designer",
+    //     "Manager",
+    //     "HR",
+    //     "QA",
+    //     "DevOps",
+    //     "Analyst",
+    //   ],
+    //   required: true,
+    // },
+
     role: {
       type: String,
-      enum: [
-        "Developer",
-        "Designer",
-        "Manager",
-        "HR",
-        "QA",
-        "DevOps",
-        "Analyst",
-      ],
       required: true,
     },
+// new wass
+
 
     department: {
       type: String,
@@ -95,13 +102,12 @@ const employeeSchema = new mongoose.Schema(
       default: "Active",
     },
 
-
     // New Dynamic field add require by WASS
 
     customFields: [
       {
         _id: false,
-      
+
         label: {
           type: String,
           required: true,
@@ -111,11 +117,7 @@ const employeeSchema = new mongoose.Schema(
           default: "",
         },
       },
-    
     ],
-
-
-
   },
   {
     timestamps: true,
