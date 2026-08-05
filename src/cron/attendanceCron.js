@@ -47,6 +47,8 @@ import Attendance from "../models/Attendance.js";
 
   cron.schedule("59 23 * * *", async () => {
 
+    // cron.schedule("*/10 * * * * *", async () => {
+
     console.log("Auto Checkout Running...");
 
     const start = new Date();

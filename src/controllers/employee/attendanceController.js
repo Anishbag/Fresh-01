@@ -24,17 +24,40 @@ export const checkIn = async (req, res) => {
 
     const today = getToday();
 
-    const already = await Attendance.findOne({
-      employee: employee._id,
-      date: today,
-    });
+    // const already = await Attendance.findOne({
+    //   employee: employee._id,
+    //   date: today,
+    // });
 
-    if (already) {
-      return res.status(400).json({
-        success: false,
-        message: "Already checked in",
-      });
-    }
+    // if (already) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Already checked in",
+    //   });
+    // }
+
+
+    const already = await Attendance.findOne({
+  employee: employee._id,
+  date: today,
+});
+
+// Employee leave a Ache
+if (already && already.status === "Leave") {
+  return res.status(400).json({
+    success: false,
+    message: "You are on approved leave today. Check-in is not allowed.",
+  });
+}
+
+if (already) {
+  return res.status(400).json({
+    success: false,
+    message: "Already checked in",
+  });
+}
+
+
 
     const { mode } = req.body;
 

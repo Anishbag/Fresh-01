@@ -138,9 +138,9 @@
 
 import SalaryConfig from "../../models/SalaryConfig.js";
 
-// ==========================================
+
 // Get All Salary Configurations
-// ==========================================
+
 export const getSalaryConfigurations = async (req, res) => {
   try {
     const configs = await SalaryConfig.find().sort({ createdAt: 1 });
@@ -158,9 +158,9 @@ export const getSalaryConfigurations = async (req, res) => {
   }
 };
 
-// ==========================================
+
 // Save Salary Configurations
-// ==========================================
+
 export const saveSalaryConfigurations = async (req, res) => {
   try {
     const configs = req.body;
@@ -214,9 +214,9 @@ export const saveSalaryConfigurations = async (req, res) => {
   }
 };
 
-// ==========================================
+
 // Delete Salary Configuration
-// ==========================================
+
 export const deleteSalaryConfiguration = async (req, res) => {
   try {
     const config = await SalaryConfig.findById(req.params.id);

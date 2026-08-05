@@ -1,9 +1,5 @@
 import Role from "../../models/Role.js";
 
-/*
-    Create Role
-    POST : /api/admin/roles
-*/
 
 export const createRole = async (req, res) => {
   try {
@@ -47,10 +43,7 @@ export const createRole = async (req, res) => {
 };
 
 
-/*
-    Get All Roles
-    GET : /api/admin/roles
-*/
+
 
 export const getRoles = async (req, res) => {
   try {
@@ -72,10 +65,7 @@ export const getRoles = async (req, res) => {
 };
 
 
-/*
-    Update Role
-    PUT : /api/admin/roles/:id
-*/
+
 
 export const updateRole = async (req, res) => {
   try {
@@ -123,10 +113,7 @@ export const updateRole = async (req, res) => {
 };
 
 
-/*
-    Delete Role
-    DELETE : /api/admin/roles/:id
-*/
+
 
 export const deleteRole = async (req, res) => {
   try {
