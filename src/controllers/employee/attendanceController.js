@@ -103,24 +103,51 @@ export const checkOut = async (req, res) => {
 
     const today = getToday();
 
+    // const attendance = await Attendance.findOne({
+    //   employee: employee._id,
+    //   date: today,
+    // });
+
+    // if (!attendance) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "Check in first",
+    //   });
+    // }
+
+    // if (attendance.checkOut) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Already checked out",
+    //   });
+    // }
+
     const attendance = await Attendance.findOne({
-      employee: employee._id,
-      date: today,
-    });
+  employee: employee._id,
+  date: today,
+});
 
-    if (!attendance) {
-      return res.status(404).json({
-        success: false,
-        message: "Check in first",
-      });
-    }
+if (!attendance) {
+  return res.status(404).json({
+    success: false,
+    message: "Check in first",
+  });
+}
 
-    if (attendance.checkOut) {
-      return res.status(400).json({
-        success: false,
-        message: "Already checked out",
-      });
-    }
+
+if (attendance.status === "Leave") {
+  return res.status(400).json({
+    success: false,
+    message: "You are on approved leave today. Check-out is not allowed.",
+  });
+}
+
+if (attendance.checkOut) {
+  return res.status(400).json({
+    success: false,
+    message: "Already checked out",
+  });
+}
 
     attendance.checkOut = new Date();
 
