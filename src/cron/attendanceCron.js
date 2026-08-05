@@ -38,52 +38,77 @@
 //   }
 // });
 
-
-
 import cron from "node-cron";
 import Attendance from "../models/Attendance.js";
 
 // cron.schedule("* * * * *", async () => {
 
-  cron.schedule("59 23 * * *", async () => {
+cron.schedule("59 23 * * *", async () => {
+  // cron.schedule("*/10 * * * * *", async () => {
 
-    // cron.schedule("*/10 * * * * *", async () => {
+  console.log("Auto Checkout Running...");
 
-    console.log("Auto Checkout Running...");
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
 
-    const start = new Date();
-    start.setHours(0,0,0,0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
 
-    const end = new Date();
-    end.setHours(23,59,59,999);
+  const autoCheckout = new Date();
 
-    const autoCheckout = new Date();
+  // const attendanceList = await Attendance.find({
 
-    const attendanceList = await Attendance.find({
+  //     date:{
+  //         $gte:start,
+  //         $lte:end
+  //     },
 
-        date:{
-            $gte:start,
-            $lte:end
-        },
+  //     checkOut:null
 
-        checkOut:null
+  // });
 
-    });
+  const attendanceList = await Attendance.find({
+    date: {
+      $gte: start,
+      $lte: end,
+    },
+    checkOut: null,
+    status: "Present",
+  });
 
-    console.log(attendanceList.length);
+  console.log(attendanceList.length);
 
-    for(const attendance of attendanceList){
+//   for (const attendance of attendanceList) {
+//     attendance.checkOut = autoCheckout;
 
-        attendance.checkOut = autoCheckout;
+//     const hours = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60);
 
-        const hours =
-        (attendance.checkOut-attendance.checkIn)/(1000*60*60);
+//     attendance.workingHours = Number(hours.toFixed(2));
 
-        attendance.workingHours =
-        Number(hours.toFixed(2));
+//     await attendance.save();
+//   }
 
-        await attendance.save();
 
+
+
+for (const attendance of attendanceList) {
+
+    // Skip if employee has no check-in
+    if (!attendance.checkIn) {
+        continue;
     }
 
-});
+    attendance.checkOut = autoCheckout;
+
+    const hours =
+        (attendance.checkOut - attendance.checkIn) /
+        (1000 * 60 * 60);
+
+    attendance.workingHours = Number(hours.toFixed(2));
+
+    await attendance.save();
+}
+ });
+
+
+
