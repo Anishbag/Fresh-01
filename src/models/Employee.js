@@ -52,8 +52,7 @@ const employeeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-// new wass
-
+    // new wass
 
     department: {
       type: String,
@@ -92,6 +91,11 @@ const employeeSchema = new mongoose.Schema(
     },
 
     address: {
+      type: String,
+      default: "",
+    },
+
+    profileImage: {
       type: String,
       default: "",
     },

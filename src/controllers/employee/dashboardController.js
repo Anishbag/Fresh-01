@@ -6,9 +6,9 @@ import WorkFromHome from "../../models/WorkFromHome.js";
 import SalarySlip from "../../models/SalarySlip.js";
 import DailyWorkStatus from "../../models/DailyWorkStatus.js";
 
-// ==========================================
+
 // Employee Dashboard
-// ==========================================
+
 export const employeeDashboard = async (req, res) => {
   try {
     // const employee = await Employee.findOne({

@@ -26,6 +26,8 @@ export const createEmployee = async (req, res) => {
       customFields, //new wass
     } = req.body;
 
+    const profileImage = req.file ? req.file.path : "";
+
     // Validation
     if (
       !fullName ||
@@ -99,6 +101,7 @@ export const createEmployee = async (req, res) => {
       emergencyContact,
       address,
       status,
+      profileImage,
       customFields, // new wass
     });
 
@@ -277,6 +280,10 @@ export const updateEmployee = async (req, res) => {
     employee.emergencyContact = emergencyContact || employee.emergencyContact;
     employee.address = address || employee.address;
     employee.status = status || employee.status;
+
+    if (req.file) {
+      employee.profileImage = req.file.path;
+    }
 // new wass
     if (customFields) {
       employee.customFields = customFields;

@@ -68,7 +68,7 @@ export const applyLeave = async (req, res) => {
       });
     }
 
-    // ✅ pending ba approv thakle newa jabe nah
+    //  pending ba approv thakle newa jabe nah
     const existingLeave = await Leave.findOne({
       employee: employee._id,
       status: { $in: ["Pending", "Approved"] },
