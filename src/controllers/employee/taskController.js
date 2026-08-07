@@ -121,3 +121,48 @@ export const getMyTasks = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+export const getCreatedTasks = async (req, res) => {
+  try {
+    const employee = await Employee.findOne({
+      userId: req.user._id,
+      status: "Active",
+    });
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    const tasks = await Task.find({
+      assignedBy: employee._id,
+    })
+      .populate({
+        path: "assignedTo",
+        select: "employeeId fullName profileImage",
+      })
+      .populate({
+        path: "project",
+        select: "projectName",
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      total: tasks.length,
+      tasks,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
