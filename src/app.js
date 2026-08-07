@@ -21,7 +21,7 @@ import employeeProjectRoutes from "./routes/employee/projectRoutes.js";
 import mailRoutes from "./routes/admin/mailRoutes.js";
 import adminattendanceRoutes from "./routes/admin/attendanceRoutes.js";
 import roleRoutes from "./routes/admin/roleRoutes.js";
-
+import employeeTaskRoutes from "./routes/employee/taskRoutes.js";
 
 
 
@@ -76,5 +76,8 @@ app.use("/api/admin/attendance", adminattendanceRoutes);
 app.use("/api/admin/roles", roleRoutes);
 
 app.use("/uploads",express.static(path.join(process.cwd(), "src/uploads")));
+
+
+app.use("/api/tasks", employeeTaskRoutes);
 
 export default app;
