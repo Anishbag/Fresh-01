@@ -69,17 +69,9 @@ import Project from "../../models/Project.js";
 //   }
 // };
 
-
-
 export const createTask = async (req, res) => {
   try {
-    const {
-      projectId,
-      assignedTo,
-      title,
-      description,
-      dueDate,
-    } = req.body;
+    const { projectId, assignedTo, title, description, dueDate } = req.body;
 
     // Logged-in employee
     const employee = await Employee.findOne({
@@ -132,7 +124,7 @@ export const createTask = async (req, res) => {
 
     // নিজের কাছে task দিতে পারবে না
     const selfAssign = uniqueEmployeeIds.some(
-      (id) => id === employee._id.toString()
+      (id) => id === employee._id.toString(),
     );
 
     if (selfAssign) {
@@ -180,7 +172,6 @@ export const createTask = async (req, res) => {
       message: "Task assigned successfully",
       task,
     });
-
   } catch (error) {
     console.log(error);
 
@@ -192,6 +183,57 @@ export const createTask = async (req, res) => {
 };
 
 // Employee deoya task dackte pabe
+
+// export const getMyTasks = async (req, res) => {
+//   try {
+//     const employee = await Employee.findOne({
+//       userId: req.user._id,
+//       status: "Active",
+//     });
+
+//     if (!employee) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Employee not found",
+//       });
+//     }
+
+//     // const tasks = await Task.find({
+//     //   assignedTo: employee._id,
+//     // })
+//     //   .populate("assignedBy", "employeeId fullName")
+//     //   .populate("project", "projectName")
+//     //   .sort({ createdAt: -1 });
+
+//     const tasks = await Task.find({
+//       assignedTo: employee._id,
+//     })
+//       .populate({
+//         path: "assignedBy",
+//         select: "employeeId fullName profileImage",
+//       })
+//       .populate({
+//         path: "assignedTo",
+//         select: "employeeId fullName profileImage",
+//       })
+//       .populate({
+//         path: "project",
+//         select: "projectName",
+//       })
+//       .sort({ createdAt: -1 });
+
+//     res.status(200).json({
+//       success: true,
+//       total: tasks.length,
+//       tasks,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
 
 export const getMyTasks = async (req, res) => {
   try {
@@ -207,29 +249,24 @@ export const getMyTasks = async (req, res) => {
       });
     }
 
-    // const tasks = await Task.find({
-    //   assignedTo: employee._id,
-    // })
-    //   .populate("assignedBy", "employeeId fullName")
-    //   .populate("project", "projectName")
-    //   .sort({ createdAt: -1 });
-
     const tasks = await Task.find({
-      assignedTo: employee._id,
+      "assignees.employee": employee._id,
     })
       .populate({
         path: "assignedBy",
         select: "employeeId fullName profileImage",
       })
       .populate({
-        path: "assignedTo",
+        path: "assignees.employee",
         select: "employeeId fullName profileImage",
       })
       .populate({
         path: "project",
         select: "projectName",
       })
-      .sort({ createdAt: -1 });
+      .sort({
+        createdAt: -1,
+      });
 
     res.status(200).json({
       success: true,
@@ -237,16 +274,14 @@ export const getMyTasks = async (req, res) => {
       tasks,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
-
-
-
 
 export const getCreatedTasks = async (req, res) => {
   try {
@@ -280,7 +315,6 @@ export const getCreatedTasks = async (req, res) => {
       total: tasks.length,
       tasks,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -288,8 +322,6 @@ export const getCreatedTasks = async (req, res) => {
     });
   }
 };
-
-
 
 // Employee nijer assigned task ar progress/status update korbe
 export const updateTask = async (req, res) => {
@@ -327,7 +359,6 @@ export const updateTask = async (req, res) => {
       });
     }
 
-   
     if (progress !== undefined) {
       if (progress < 0 || progress > 100) {
         return res.status(400).json({
@@ -339,11 +370,8 @@ export const updateTask = async (req, res) => {
       task.progress = progress;
     }
 
-    
     if (status !== undefined) {
-      if (
-        !["Pending", "In Progress", "Completed"].includes(status)
-      ) {
+      if (!["Pending", "In Progress", "Completed"].includes(status)) {
         return res.status(400).json({
           success: false,
           message: "Invalid task status",
@@ -353,7 +381,6 @@ export const updateTask = async (req, res) => {
       task.status = status;
     }
 
-    
     if (task.progress === 100) {
       task.status = "Completed";
     }
@@ -365,7 +392,6 @@ export const updateTask = async (req, res) => {
       message: "Task updated successfully",
       task,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -374,9 +400,7 @@ export const updateTask = async (req, res) => {
   }
 };
 
-
-
-// Employee seen others employees list 
+// Employee seen others employees list
 export const getEmployeesForTask = async (req, res) => {
   try {
     const employee = await Employee.findOne({
@@ -393,7 +417,7 @@ export const getEmployeesForTask = async (req, res) => {
 
     const employees = await Employee.find({
       status: "Active",
-      _id: { $ne: employee._id }, 
+      _id: { $ne: employee._id },
     })
       .select("_id employeeId fullName profileImage department role")
       .sort({ fullName: 1 });
@@ -403,7 +427,6 @@ export const getEmployeesForTask = async (req, res) => {
       total: employees.length,
       employees,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
