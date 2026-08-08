@@ -96,7 +96,7 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // assignedTo অবশ্যই array হতে হবে
+    
     if (!Array.isArray(assignedTo) || assignedTo.length === 0) {
       return res.status(400).json({
         success: false,
@@ -104,12 +104,12 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // Duplicate employee ID remove
+    
     const uniqueEmployeeIds = [
       ...new Set(assignedTo.map((id) => id.toString())),
     ];
 
-    // Assigned employees check
+    
     const receivers = await Employee.find({
       _id: { $in: uniqueEmployeeIds },
       status: "Active",
@@ -122,7 +122,7 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // নিজের কাছে task দিতে পারবে না
+    
     const selfAssign = uniqueEmployeeIds.some(
       (id) => id === employee._id.toString(),
     );
@@ -134,7 +134,7 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // Multiple assignees তৈরি
+    
     const assignees = receivers.map((receiver) => ({
       employee: receiver._id,
       status: "Pending",
@@ -151,7 +151,7 @@ export const createTask = async (req, res) => {
       dueDate,
     });
 
-    // Response-এর মধ্যে employee names দেখানোর জন্য populate
+    
     await task.populate([
       {
         path: "assignedBy",
