@@ -257,10 +257,6 @@ export const getMyTasks = async (req, res) => {
         select: "employeeId fullName profileImage",
       })
       .populate({
-        path: "assignees.employee",
-        select: "employeeId fullName profileImage",
-      })
-      .populate({
         path: "project",
         select: "projectName",
       })
@@ -268,11 +264,41 @@ export const getMyTasks = async (req, res) => {
         createdAt: -1,
       });
 
+    const myTasks = tasks.map((task) => {
+      const myAssignment = task.assignees.find(
+        (item) =>
+          item.employee._id.toString() === employee._id.toString()
+      );
+
+      return {
+        _id: task._id,
+
+        project: task.project,
+
+        title: task.title,
+
+        description: task.description,
+
+        assignedBy: task.assignedBy,
+
+        dueDate: task.dueDate,
+
+        status: myAssignment.status,
+
+        progress: myAssignment.progress,
+
+        createdAt: task.createdAt,
+
+        updatedAt: task.updatedAt,
+      };
+    });
+
     res.status(200).json({
       success: true,
-      total: tasks.length,
-      tasks,
+      total: myTasks.length,
+      tasks: myTasks,
     });
+
   } catch (error) {
     console.log(error);
 
