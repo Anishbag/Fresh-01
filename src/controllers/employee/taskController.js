@@ -166,3 +166,126 @@ export const getCreatedTasks = async (req, res) => {
     });
   }
 };
+
+
+
+// Employee nijer assigned task ar progress/status update korbe
+export const updateTask = async (req, res) => {
+  try {
+    const employee = await Employee.findOne({
+      userId: req.user._id,
+      status: "Active",
+    });
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    const { progress, status } = req.body;
+
+    // Task kujbe
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    // jake task deba hoyeche sai update krte parbe
+
+    if (task.assignedTo.toString() !== employee._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You can update only your assigned tasks",
+      });
+    }
+
+   
+    if (progress !== undefined) {
+      if (progress < 0 || progress > 100) {
+        return res.status(400).json({
+          success: false,
+          message: "Progress must be between 0 and 100",
+        });
+      }
+
+      task.progress = progress;
+    }
+
+    
+    if (status !== undefined) {
+      if (
+        !["Pending", "In Progress", "Completed"].includes(status)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid task status",
+        });
+      }
+
+      task.status = status;
+    }
+
+    
+    if (task.progress === 100) {
+      task.status = "Completed";
+    }
+
+    await task.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Task updated successfully",
+      task,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+// Employee seen others employees list 
+export const getEmployeesForTask = async (req, res) => {
+  try {
+    const employee = await Employee.findOne({
+      userId: req.user._id,
+      status: "Active",
+    });
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    const employees = await Employee.find({
+      status: "Active",
+      _id: { $ne: employee._id }, 
+    })
+      .select("_id employeeId fullName profileImage department role")
+      .sort({ fullName: 1 });
+
+    res.status(200).json({
+      success: true,
+      total: employees.length,
+      employees,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

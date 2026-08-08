@@ -52,7 +52,7 @@ cron.schedule("59 23 * * *", async () => {
   start.setHours(0, 0, 0, 0);
 
   const end = new Date();
-  end.setHours(23, 59, 59, 999);
+  end.setHours(23, 39, 59, 999);
 
   const autoCheckout = new Date();
 
