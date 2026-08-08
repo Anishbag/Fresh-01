@@ -283,6 +283,46 @@ export const getMyTasks = async (req, res) => {
   }
 };
 
+// export const getCreatedTasks = async (req, res) => {
+//   try {
+//     const employee = await Employee.findOne({
+//       userId: req.user._id,
+//       status: "Active",
+//     });
+
+//     if (!employee) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Employee not found",
+//       });
+//     }
+
+//     const tasks = await Task.find({
+//       assignedBy: employee._id,
+//     })
+//       .populate({
+//         path: "assignedTo",
+//         select: "employeeId fullName profileImage",
+//       })
+//       .populate({
+//         path: "project",
+//         select: "projectName",
+//       })
+//       .sort({ createdAt: -1 });
+
+//     res.status(200).json({
+//       success: true,
+//       total: tasks.length,
+//       tasks,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
 export const getCreatedTasks = async (req, res) => {
   try {
     const employee = await Employee.findOne({
@@ -301,7 +341,7 @@ export const getCreatedTasks = async (req, res) => {
       assignedBy: employee._id,
     })
       .populate({
-        path: "assignedTo",
+        path: "assignees.employee",
         select: "employeeId fullName profileImage",
       })
       .populate({
@@ -315,13 +355,20 @@ export const getCreatedTasks = async (req, res) => {
       total: tasks.length,
       tasks,
     });
+
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
+
+
+
 
 // Employee nijer assigned task ar progress/status update korbe
 export const updateTask = async (req, res) => {
