@@ -2,11 +2,86 @@ import Task from "../../models/Task.js";
 import Employee from "../../models/Employee.js";
 import Project from "../../models/Project.js";
 
+// export const createTask = async (req, res) => {
+//   try {
+//     const { projectId, assignedTo, title, description, dueDate } = req.body;
+
+//     // Logged in krbe employe
+//     const employee = await Employee.findOne({
+//       userId: req.user._id,
+//       status: "Active",
+//     });
+
+//     if (!employee) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Employee not found",
+//       });
+//     }
+
+//     // Project Check korbe
+//     const project = await Project.findById(projectId);
+
+//     if (!project) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Project not found",
+//       });
+//     }
+
+//     // Assigned Employee Check korbe
+//     const receiver = await Employee.findById(assignedTo);
+
+//     if (!receiver) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Assigned employee not found",
+//       });
+//     }
+
+//     // nijeke dite parbe nah
+//     if (employee._id.toString() === receiver._id.toString()) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "You cannot assign task to yourself",
+//       });
+//     }
+
+//     const task = await Task.create({
+//       project: project._id,
+//       assignedBy: employee._id,
+//       assignedTo: receiver._id,
+//       title,
+//       description,
+//       dueDate,
+//     });
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Task assigned successfully",
+//       task,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+
 export const createTask = async (req, res) => {
   try {
-    const { projectId, assignedTo, title, description, dueDate } = req.body;
+    const {
+      projectId,
+      assignedTo,
+      title,
+      description,
+      dueDate,
+    } = req.body;
 
-    // Logged in krbe employe
+    // Logged-in employee
     const employee = await Employee.findOne({
       userId: req.user._id,
       status: "Active",
@@ -19,7 +94,7 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // Project Check korbe
+    // Project check
     const project = await Project.findById(projectId);
 
     if (!project) {
@@ -29,39 +104,86 @@ export const createTask = async (req, res) => {
       });
     }
 
-    // Assigned Employee Check korbe
-    const receiver = await Employee.findById(assignedTo);
-
-    if (!receiver) {
-      return res.status(404).json({
+    // assignedTo অবশ্যই array হতে হবে
+    if (!Array.isArray(assignedTo) || assignedTo.length === 0) {
+      return res.status(400).json({
         success: false,
-        message: "Assigned employee not found",
+        message: "Please select at least one employee",
       });
     }
 
-    // nijeke dite parbe nah
-    if (employee._id.toString() === receiver._id.toString()) {
+    // Duplicate employee ID remove
+    const uniqueEmployeeIds = [
+      ...new Set(assignedTo.map((id) => id.toString())),
+    ];
+
+    // Assigned employees check
+    const receivers = await Employee.find({
+      _id: { $in: uniqueEmployeeIds },
+      status: "Active",
+    });
+
+    if (receivers.length !== uniqueEmployeeIds.length) {
+      return res.status(404).json({
+        success: false,
+        message: "One or more assigned employees not found",
+      });
+    }
+
+    // নিজের কাছে task দিতে পারবে না
+    const selfAssign = uniqueEmployeeIds.some(
+      (id) => id === employee._id.toString()
+    );
+
+    if (selfAssign) {
       return res.status(400).json({
         success: false,
         message: "You cannot assign task to yourself",
       });
     }
 
+    // Multiple assignees তৈরি
+    const assignees = receivers.map((receiver) => ({
+      employee: receiver._id,
+      status: "Pending",
+      progress: 0,
+    }));
+
+    // Create Task
     const task = await Task.create({
       project: project._id,
       assignedBy: employee._id,
-      assignedTo: receiver._id,
+      assignees,
       title,
       description,
       dueDate,
     });
+
+    // Response-এর মধ্যে employee names দেখানোর জন্য populate
+    await task.populate([
+      {
+        path: "assignedBy",
+        select: "employeeId fullName profileImage",
+      },
+      {
+        path: "assignees.employee",
+        select: "employeeId fullName profileImage",
+      },
+      {
+        path: "project",
+        select: "projectName",
+      },
+    ]);
 
     res.status(201).json({
       success: true,
       message: "Task assigned successfully",
       task,
     });
+
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
