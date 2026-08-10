@@ -1,9 +1,9 @@
 import SalarySlip from "../../models/SalarySlip.js";
 import Employee from "../../models/Employee.js";
 
-// ==========================================
+
 // My Salary Slips
-// ==========================================
+
 export const mySalarySlips = async (req, res) => {
   try {
     // const employee = await Employee.findOne({
@@ -43,9 +43,9 @@ export const mySalarySlips = async (req, res) => {
   }
 };
 
-// ==========================================
-// View Salary Slip
-// ==========================================
+
+//  Salary Slip Dekha
+
 export const viewSalarySlip = async (req, res) => {
   try {
     // const employee = await Employee.findOne({

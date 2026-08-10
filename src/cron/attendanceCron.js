@@ -93,7 +93,7 @@ cron.schedule("59 23 * * *", async () => {
 
 for (const attendance of attendanceList) {
 
-    // Skip if employee has no check-in
+   
     if (!attendance.checkIn) {
         continue;
     }

@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Hash Password Before Save
+// Hash Password Save Korar aage
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
@@ -47,7 +47,7 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare Password
+//  Password Compare korbe ata
 userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };

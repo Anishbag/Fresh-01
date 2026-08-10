@@ -5,9 +5,9 @@ import Leave from "../../models/Leave.js";
 import WorkFromHome from "../../models/WorkFromHome.js";
 import DailyWorkStatus from "../../models/DailyWorkStatus.js";
 
-// ==============================================
+
 // Admin Dashboard
-// ==============================================
+
 export const adminDashboard = async (req, res) => {
   try {
     const today = new Date();

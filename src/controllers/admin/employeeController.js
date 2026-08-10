@@ -1,10 +1,10 @@
 import User from "../../models/User.js";
 import Employee from "../../models/Employee.js";
 
-/*
-    Create Employee
-    POST : /api/admin/employees
-*/
+
+   // Create Employee
+    
+
 
 export const createEmployee = async (req, res) => {
   try {
@@ -120,10 +120,10 @@ export const createEmployee = async (req, res) => {
   }
 };
 
-/*
-    Get All Employees
-    GET : /api/admin/employees
-*/
+
+    // Get All Employees
+    
+
 
 export const getEmployees = async (req, res) => {
   try {
@@ -167,10 +167,10 @@ export const getEmployees = async (req, res) => {
   }
 };
 
-/*
-    Get Single Employee
-    GET : /api/admin/employees/:id
-*/
+
+   // Get Single Employee
+    
+
 
 export const getEmployeeById = async (req, res) => {
   try {
@@ -197,10 +197,10 @@ export const getEmployeeById = async (req, res) => {
   }
 };
 
-/*
-    Update Employee
-    PUT : /api/admin/employees/:id
-*/
+
+    //Update Employee
+   
+
 
 export const updateEmployee = async (req, res) => {
   try {
@@ -306,10 +306,10 @@ export const updateEmployee = async (req, res) => {
   }
 };
 
-/*
-    Delete Employee
-    DELETE : /api/admin/employees/:id
-*/
+
+    //Delete Employee
+  
+
 
 export const deleteEmployee = async (req, res) => {
   try {
