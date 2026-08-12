@@ -10,13 +10,7 @@ const leaveSchema = new mongoose.Schema(
 
     leaveType: {
       type: String,
-      enum: [
-        "Casual",
-        "Sick",
-        "Emergency",
-        "Paid",
-        "Unpaid",
-      ],
+      enum: ["Casual", "Sick", "Emergency", "Paid", "Unpaid"],
       required: true,
     },
 
@@ -38,12 +32,14 @@ const leaveSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: [
-        "Pending",
-        "Approved",
-        "Rejected",
-      ],
+      enum: ["Pending", "Approved", "Rejected"],
       default: "Pending",
+    },
+
+    rejectionRemark: {
+      type: String,
+      default: "",
+      trim: true,
     },
 
     appliedAt: {
@@ -53,7 +49,7 @@ const leaveSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export default mongoose.model("Leave", leaveSchema);

@@ -6,7 +6,7 @@ export const getAllLeaves = async (req, res) => {
     const requests = await Leave.find()
       .populate(
         "employee",
-        "employeeId firstName lastName"
+        "employeeId fullName department role profileImage"
       )
       .sort({
         createdAt: -1,
@@ -116,8 +116,40 @@ export const approveLeave = async (req, res) => {
 
 
 
+// export const rejectLeave = async (req, res) => {
+//   try {
+//     const leave = await Leave.findById(req.params.id);
+
+//     if (!leave) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Leave request not found",
+//       });
+//     }
+
+//     leave.status = "Rejected";
+
+//     await leave.save();
+
+//     res.json({
+//       success: true,
+//       message: "Leave rejected",
+//     });
+
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
+
 export const rejectLeave = async (req, res) => {
   try {
+    const { rejectionRemark } = req.body;
+
     const leave = await Leave.findById(req.params.id);
 
     if (!leave) {
@@ -127,16 +159,36 @@ export const rejectLeave = async (req, res) => {
       });
     }
 
+    // Remark Dite hobe
+    if (!rejectionRemark || rejectionRemark.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a rejection remark",
+      });
+    }
+
+    // Already rejected check
+    if (leave.status === "Rejected") {
+      return res.status(400).json({
+        success: false,
+        message: "Leave already rejected",
+      });
+    }
+
     leave.status = "Rejected";
+    leave.rejectionRemark = rejectionRemark.trim();
 
     await leave.save();
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Leave rejected",
+      message: "Leave rejected successfully",
+      rejectionRemark: leave.rejectionRemark,
     });
 
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
