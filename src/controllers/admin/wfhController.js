@@ -5,7 +5,7 @@ export const getAllWFHRequests = async (req, res) => {
     const requests = await WorkFromHome.find()
       .populate(
         "employee",
-        "employeeId firstName lastName"
+        "employeeId fullName department role profileImage"
       )
       .sort({
         createdAt: -1,
