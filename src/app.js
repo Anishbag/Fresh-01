@@ -22,6 +22,7 @@ import mailRoutes from "./routes/admin/mailRoutes.js";
 import adminattendanceRoutes from "./routes/admin/attendanceRoutes.js";
 import roleRoutes from "./routes/admin/roleRoutes.js";
 import employeeTaskRoutes from "./routes/employee/taskRoutes.js";
+import adminTaskRoutes from "./routes/admin/taskRoutes.js";
 
 
 
@@ -79,5 +80,7 @@ app.use("/uploads",express.static(path.join(process.cwd(), "src/uploads")));
 
 
 app.use("/api/tasks", employeeTaskRoutes);
+
+app.use("/api/admin/tasks", adminTaskRoutes);
 
 export default app;
