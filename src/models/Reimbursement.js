@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const advanceSchema = new mongoose.Schema(
+const reimbursementSchema = new mongoose.Schema(
   {
     employee: {
       type: mongoose.Schema.Types.ObjectId,
@@ -12,6 +12,12 @@ const advanceSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1,
+    },
+
+    reason: {
+      type: String,
+      required: true,
+      trim: true,
     },
 
     status: {
@@ -31,4 +37,4 @@ const advanceSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model("Advance", advanceSchema);
+export default mongoose.model("Reimbursement",reimbursementSchema);

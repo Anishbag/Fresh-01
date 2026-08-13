@@ -23,6 +23,8 @@ import adminattendanceRoutes from "./routes/admin/attendanceRoutes.js";
 import roleRoutes from "./routes/admin/roleRoutes.js";
 import employeeTaskRoutes from "./routes/employee/taskRoutes.js";
 import adminTaskRoutes from "./routes/admin/taskRoutes.js";
+import employeeAdvanceRoutes from "./routes/employee/advanceRoutes.js";
+import employeeReimbursementRoutes from "./routes/employee/reimbursementRoutes.js";
 
 
 
@@ -82,5 +84,9 @@ app.use("/uploads",express.static(path.join(process.cwd(), "src/uploads")));
 app.use("/api/tasks", employeeTaskRoutes);
 
 app.use("/api/admin/tasks", adminTaskRoutes);
+
+app.use("/api/employee/advance",employeeAdvanceRoutes);
+
+app.use("/api/employee/reimbursement",employeeReimbursementRoutes);
 
 export default app;
