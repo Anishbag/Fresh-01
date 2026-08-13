@@ -43,7 +43,7 @@ import Attendance from "../models/Attendance.js";
 
 // cron.schedule("* * * * *", async () => {
 
-cron.schedule("59 23 * * *", async () => {
+cron.schedule("30 23 * * *", async () => {
   // cron.schedule("*/10 * * * * *", async () => {
 
   console.log("Auto Checkout Running...");
