@@ -25,6 +25,7 @@ import employeeTaskRoutes from "./routes/employee/taskRoutes.js";
 import adminTaskRoutes from "./routes/admin/taskRoutes.js";
 import employeeAdvanceRoutes from "./routes/employee/advanceRoutes.js";
 import employeeReimbursementRoutes from "./routes/employee/reimbursementRoutes.js";
+import adminReimbursementRoutes from "./routes/admin/reimbursementRoutes.js";
 
 
 
@@ -88,5 +89,7 @@ app.use("/api/admin/tasks", adminTaskRoutes);
 app.use("/api/employee/advance",employeeAdvanceRoutes);
 
 app.use("/api/employee/reimbursement",employeeReimbursementRoutes);
+
+app.use("/api/admin/reimbursement",adminReimbursementRoutes);
 
 export default app;
