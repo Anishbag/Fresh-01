@@ -1,10 +1,8 @@
 import SalaryConfig from "../../models/SalaryConfig.js";
 import SalarySlip from "../../models/SalarySlip.js";
 import Employee from "../../models/Employee.js";
+import { calculateNormalLeaveDeduction } from "../../utils/salaryUtils.js";
 
-// =========================================
-// Generate Salary For All Employees
-// =========================================
 export const generateSalary = async (req, res) => {
   try {
     const { month, year } = req.body;
@@ -15,11 +13,6 @@ export const generateSalary = async (req, res) => {
         message: "Month and Year are required",
       });
     }
-
-    // const employees = await Employee.find({
-    //   isDeleted: false,
-    //   isActive: true,
-    // });
 
     const employees = await Employee.find({
       status: "Active",
@@ -95,9 +88,6 @@ export const generateSalary = async (req, res) => {
       let totalEarnings = 0;
       let totalDeductions = 0;
 
-      // ==========================
-      // Calculate Earnings & Deductions
-      // ==========================
       for (const config of configs) {
         let amount = 0;
 
@@ -126,27 +116,33 @@ export const generateSalary = async (req, res) => {
         }
       }
 
-      // ==========================
-      // Salary Calculation
-      // ==========================
+      // const totalSalary = Number(totalEarnings.toFixed(2));
 
-      // Gross Salary Breakdown
-      const totalSalary = Number(totalEarnings.toFixed(2));
+      // const netSalary = Number((totalSalary - totalDeductions).toFixed(2));
 
-      // Final Payable Salary
+      const leaveCalculation = await calculateNormalLeaveDeduction(
+        employee._id,
+        month,
+        year,
+        grossSalary,
+      );
+
+      if (leaveCalculation.deduction > 0) {
+        deductions.push({
+          label: "Normal Leave Deduction",
+          amount: leaveCalculation.deduction,
+        });
+
+        totalDeductions += leaveCalculation.deduction;
+      }
+
+      const totalSalary = Number(grossSalary.toFixed(2));
+
+      totalEarnings = Number(totalEarnings.toFixed(2));
+
+      totalDeductions = Number(totalDeductions.toFixed(2));
+
       const netSalary = Number((totalSalary - totalDeductions).toFixed(2));
-
-      // await SalarySlip.create({
-      //   employee: employee._id,
-      //   month,
-      //   year,
-      //   grossSalary,
-      //   earnings,
-      //   deductions,
-      //   totalEarnings,
-      //   totalDeductions,
-      //   netSalary,
-      // });
 
       await SalarySlip.create({
         employee: employee._id,
@@ -182,42 +178,6 @@ export const generateSalary = async (req, res) => {
     });
   }
 };
-
-// =========================================
-// Get All Salary Slips
-// =========================================
-// export const getSalarySlips = async (req, res) => {
-//   try {
-//     const { month, year } = req.query;
-
-//     const filter = {};
-
-//     if (month) filter.month = month;
-//     if (year) filter.year = year;
-
-//     const salaries = await SalarySlip.find(filter)
-//       .populate("employee", "employeeId firstName lastName department salary")
-//       .sort({
-//         createdAt: -1,
-//       });
-
-//     res.json({
-//       success: true,
-//       total: salaries.length,
-//       salaries,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
-
-
-
-
-
 
 export const getSalarySlips = async (req, res) => {
   try {
@@ -264,7 +224,6 @@ export const getSalarySlips = async (req, res) => {
       total: result.length,
       employees: result,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -273,9 +232,7 @@ export const getSalarySlips = async (req, res) => {
   }
 };
 
-// =========================================
 // Get Single Salary Slip
-// =========================================
 export const getSalarySlip = async (req, res) => {
   try {
     const salary = await SalarySlip.findById(req.params.id).populate(
@@ -300,10 +257,6 @@ export const getSalarySlip = async (req, res) => {
     });
   }
 };
-
-
-
-
 
 export const generateSingleSalary = async (req, res) => {
   try {
@@ -379,11 +332,35 @@ export const generateSingleSalary = async (req, res) => {
       }
     }
 
-    const totalSalary = Number(totalEarnings.toFixed(2));
+    // const totalSalary = Number(totalEarnings.toFixed(2));
 
-    const netSalary = Number(
-      (totalSalary - totalDeductions).toFixed(2)
+    // const netSalary = Number(
+    //   (totalSalary - totalDeductions).toFixed(2)
+    // );
+
+    const leaveCalculation = await calculateNormalLeaveDeduction(
+      employee._id,
+      month,
+      year,
+      grossSalary,
     );
+
+    if (leaveCalculation.deduction > 0) {
+      deductions.push({
+        label: "Normal Leave Deduction",
+        amount: leaveCalculation.deduction,
+      });
+
+      totalDeductions += leaveCalculation.deduction;
+    }
+
+    const totalSalary = Number(grossSalary.toFixed(2));
+
+    totalEarnings = Number(totalEarnings.toFixed(2));
+
+    totalDeductions = Number(totalDeductions.toFixed(2));
+
+    const netSalary = Number((totalSalary - totalDeductions).toFixed(2));
 
     const salary = await SalarySlip.create({
       employee: employee._id,
@@ -403,7 +380,6 @@ export const generateSingleSalary = async (req, res) => {
       message: "Salary generated successfully",
       salary,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -412,9 +388,6 @@ export const generateSingleSalary = async (req, res) => {
   }
 };
 
-// =========================================
-// Export Salary
-// =========================================
 export const exportSalary = async (req, res) => {
   try {
     const salaries = await SalarySlip.find().populate(
