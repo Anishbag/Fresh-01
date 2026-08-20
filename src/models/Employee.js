@@ -48,15 +48,27 @@ const employeeSchema = new mongoose.Schema(
     //   required: true,
     // },
 
-    role: {
-      type: String,
-      required: true,
-    },
-    // new wass
+    // role: {
+    //   type: String,
+    //   required: true,
+    // },
 
     department: {
       type: String,
       required: true,
+      trim: true,
+    },
+    // new wass
+
+    // department: {
+    //   type: String,
+    //   required: true,
+    // },
+
+    designation: {
+      type: String,
+      required: true,
+      trim: true,
     },
 
     salary: {

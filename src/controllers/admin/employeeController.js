@@ -13,8 +13,9 @@ export const createEmployee = async (req, res) => {
       email,
       password,
       phone,
-      role,
+      // role,
       department,
+      designation,
       salary,
       joiningDate,
       idProof,
@@ -34,8 +35,9 @@ export const createEmployee = async (req, res) => {
       !email ||
       !password ||
       !phone ||
-      !role ||
+      // !role ||
       !department ||
+      !designation ||
       !salary ||
       !joiningDate
     ) {
@@ -91,8 +93,9 @@ export const createEmployee = async (req, res) => {
       fullName,
       email,
       phone,
-      role,
+      // role,
       department,
+      designation,
       salary,
       joiningDate,
       idProof,
@@ -139,7 +142,8 @@ export const getEmployees = async (req, res) => {
         { email: { $regex: search, $options: "i" } },
         { phone: { $regex: search, $options: "i" } },
         { department: { $regex: search, $options: "i" } },
-        { role: { $regex: search, $options: "i" } },
+        // { role: { $regex: search, $options: "i" } },
+        { designation: { $regex: search, $options: "i" } },
       ],
     };
 
@@ -209,8 +213,9 @@ export const updateEmployee = async (req, res) => {
       email,
       password,
       phone,
-      role,
+      // role,
       department,
+      designation,
       salary,
       joiningDate,
       idProof,
@@ -270,8 +275,9 @@ export const updateEmployee = async (req, res) => {
     employee.fullName = fullName || employee.fullName;
     employee.email = email || employee.email;
     employee.phone = phone || employee.phone;
-    employee.role = role || employee.role;
+    // employee.role = role || employee.role;
     employee.department = department || employee.department;
+    employee.designation = designation || employee.designation;
     employee.salary = salary || employee.salary;
     employee.joiningDate = joiningDate || employee.joiningDate;
     employee.idProof = idProof || employee.idProof;
