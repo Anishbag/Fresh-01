@@ -42,43 +42,7 @@ export const generateSalary = async (req, res) => {
         continue;
       }
 
-      // const grossSalary = employee.salary || 0;
-
-      // let earnings = [];
-      // let deductions = [];
-
-      // let totalEarnings = 0;
-      // let totalDeductions = 0;
-
-      // for (const config of configs) {
-      //   let amount = 0;
-
-      //   if (config.mode === "% of gross") {
-      //     amount = (grossSalary * config.value) / 100;
-      //   } else {
-      //     amount = config.value;
-      //   }
-
-      //   amount = Number(amount.toFixed(2));
-
-      //   if (config.type === "Earning") {
-      //     earnings.push({
-      //       label: config.label,
-      //       amount,
-      //     });
-
-      //     totalEarnings += amount;
-      //   } else {
-      //     deductions.push({
-      //       label: config.label,
-      //       amount,
-      //     });
-
-      //     totalDeductions += amount;
-      //   }
-      // }
-
-      // const netSalary = grossSalary + totalEarnings - totalDeductions;
+     
 
       const grossSalary = Number(employee.salary || 0);
 
@@ -116,9 +80,7 @@ export const generateSalary = async (req, res) => {
         }
       }
 
-      // const totalSalary = Number(totalEarnings.toFixed(2));
-
-      // const netSalary = Number((totalSalary - totalDeductions).toFixed(2));
+     
 
       const leaveCalculation = await calculateNormalLeaveDeduction(
         employee._id,
@@ -208,7 +170,7 @@ export const getSalarySlips = async (req, res) => {
         employeeIdMongo: employee._id,
         fullName: employee.fullName,
         department: employee.department,
-        role: employee.role,
+        role: employee.designation,
         grossSalary: employee.salary,
 
         generated: !!slip,
@@ -332,11 +294,7 @@ export const generateSingleSalary = async (req, res) => {
       }
     }
 
-    // const totalSalary = Number(totalEarnings.toFixed(2));
-
-    // const netSalary = Number(
-    //   (totalSalary - totalDeductions).toFixed(2)
-    // );
+   
 
     const leaveCalculation = await calculateNormalLeaveDeduction(
       employee._id,
@@ -392,7 +350,7 @@ export const exportSalary = async (req, res) => {
   try {
     const salaries = await SalarySlip.find().populate(
       "employee",
-      "employeeId fullName department salary",
+      "employeeId fullName department designation salary",
     );
 
     res.json({

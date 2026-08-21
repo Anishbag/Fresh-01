@@ -19,7 +19,7 @@ export const isWorkingDay = (date) => {
     if (
       saturdayNumber === 1 ||
       saturdayNumber === 3 ||
-      saturdayNumber === 5
+      saturdayNumber === 5 //// 
     ) {
       return false;
     }

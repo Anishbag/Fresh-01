@@ -1,8 +1,6 @@
 // import SalaryConfig from "../../models/SalaryConfig.js";
 
-// // ==========================================
-// // Get All Salary Configurations
-// // ==========================================
+
 // export const getSalaryConfigurations = async (req, res) => {
 //   try {
 //     const configs = await SalaryConfig.find().sort({ createdAt: 1 });
@@ -20,9 +18,7 @@
 //   }
 // };
 
-// // ==========================================
-// // Create Salary Configuration
-// // ==========================================
+
 // export const createSalaryConfiguration = async (req, res) => {
 //   try {
 //     const { label, type, mode, value } = req.body;
@@ -65,9 +61,7 @@
 //   }
 // };
 
-// // ==========================================
-// // Update Salary Configuration
-// // ==========================================
+
 // export const updateSalaryConfiguration = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -101,9 +95,7 @@
 //   }
 // };
 
-// // ==========================================
-// // Delete Salary Configuration
-// // ==========================================
+
 // export const deleteSalaryConfiguration = async (req, res) => {
 //   try {
 //     const { id } = req.params;

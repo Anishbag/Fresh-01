@@ -1,5 +1,6 @@
 import Leave from "../../models/Leave.js";
 import Attendance from "../../models/Attendance.js";
+import { isWorkingDay, } from "../../utils/calendarUtils.js";
 
 export const getAllLeaves = async (req, res) => {
   try {
@@ -65,7 +66,6 @@ export const approveLeave = async (req, res) => {
       });
     }
 
-    // Already approved check
     if (leave.status === "Approved") {
       return res.status(400).json({
         success: false,
@@ -76,37 +76,44 @@ export const approveLeave = async (req, res) => {
     leave.status = "Approved";
     await leave.save();
 
-    // Attendance Create
+    // attendance banabe only working din gulo te
+
     const currentDate = new Date(leave.fromDate);
+    currentDate.setHours(0, 0, 0, 0);
 
-    while (currentDate <= leave.toDate) {
+    const endDate = new Date(leave.toDate);
+    endDate.setHours(0, 0, 0, 0);
 
+    while (currentDate <= endDate) {
       const attendanceDate = new Date(currentDate);
-      attendanceDate.setHours(0, 0, 0, 0);
 
-      const exists = await Attendance.findOne({
-        employee: leave.employee,
-        date: attendanceDate,
-      });
-
-      if (!exists) {
-        await Attendance.create({
+      // Sunday ar 1st 3rd sonibar baad
+      if (isWorkingDay(attendanceDate)) {
+        const exists = await Attendance.findOne({
           employee: leave.employee,
           date: attendanceDate,
-          status: "Leave",
-          mode: "Office",
         });
+
+        if (!exists) {
+          await Attendance.create({
+            employee: leave.employee,
+            date: attendanceDate,
+            status: "Leave",
+            mode: "Office",
+          });
+        }
       }
 
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Leave approved successfully hoyeche",
+      message: "Leave approved successfully",
     });
-
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -116,33 +123,7 @@ export const approveLeave = async (req, res) => {
 
 
 
-// export const rejectLeave = async (req, res) => {
-//   try {
-//     const leave = await Leave.findById(req.params.id);
 
-//     if (!leave) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Leave request not found",
-//       });
-//     }
-
-//     leave.status = "Rejected";
-
-//     await leave.save();
-
-//     res.json({
-//       success: true,
-//       message: "Leave rejected",
-//     });
-
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
 
 
 

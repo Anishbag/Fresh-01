@@ -2,48 +2,6 @@ import Employee from "../../models/Employee.js";
 import Leave from "../../models/Leave.js";
 import Attendance from "../../models/Attendance.js";
 
-// export const applyLeave = async (req, res) => {
-//   try {
-//     // const employee = await Employee.findOne({
-//     //   userId: req.user._id,
-//     //   isDeleted: false,
-//     // });
-
-//     const employee = await Employee.findOne({
-//       userId: req.user._id,
-//       status: "Active",
-//     });
-
-//     if (!employee) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Employee not found",
-//       });
-//     }
-
-//     const { leaveType, fromDate, toDate, reason } = req.body;
-
-//     const leave = await Leave.create({
-//       employee: employee._id,
-//       leaveType,
-//       fromDate,
-//       toDate,
-//       reason,
-//     });
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Leave applied successfully",
-//       leave,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// };
-
 export const applyLeave = async (req, res) => {
   try {
     const employee = await Employee.findOne({
@@ -60,20 +18,59 @@ export const applyLeave = async (req, res) => {
 
     const { leaveType, fromDate, toDate, reason } = req.body;
 
-    //  ager date to porer date kora jabe nah
-    if (new Date(fromDate) > new Date(toDate)) {
+    if (!leaveType || !fromDate || !toDate || !reason || reason.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    const allowedLeaveTypes = ["Casual", "Sick", "Normal"];
+
+    if (!allowedLeaveTypes.includes(leaveType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid leave type",
+      });
+    }
+
+    const startDate = new Date(fromDate);
+    const endDate = new Date(toDate);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date",
+      });
+    }
+
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    // from date not greater than To date
+    if (startDate > endDate) {
       return res.status(400).json({
         success: false,
         message: "From date cannot be greater than To date.",
       });
     }
 
-    //  pending ba approv thakle newa jabe nah
+    //  already 1k ta leave thakle r neba jabe nah
+
     const existingLeave = await Leave.findOne({
       employee: employee._id,
-      status: { $in: ["Pending", "Approved"] },
-      fromDate: { $lte: new Date(toDate) },
-      toDate: { $gte: new Date(fromDate) },
+
+      status: {
+        $in: ["Pending", "Approved"],
+      },
+
+      fromDate: {
+        $lte: endDate,
+      },
+
+      toDate: {
+        $gte: startDate,
+      },
     });
 
     if (existingLeave) {
@@ -83,31 +80,34 @@ export const applyLeave = async (req, res) => {
       });
     }
 
+    //  attendance thakle leave hobe nah same date a
+
     const attendance = await Attendance.findOne({
-  employee: employee._id,
-  // status: "Present",
-  date: {
-    $gte: new Date(fromDate),
-    $lte: new Date(toDate),
-  },
-});
+      employee: employee._id,
 
-if (attendance) {
-  return res.status(400).json({
-    success: false,
-    message: "Attendance already exists for the selected date.",
-  });
-}
+      date: {
+        $gte: startDate,
+        $lte: endDate,
+      },
 
+      status: {
+        $ne: "Leave",
+      },
+    });
 
-
+    if (attendance) {
+      return res.status(400).json({
+        success: false,
+        message: "Attendance already exists for one or more selected dates.",
+      });
+    }
 
     const leave = await Leave.create({
       employee: employee._id,
       leaveType,
-      fromDate,
-      toDate,
-      reason,
+      fromDate: startDate,
+      toDate: endDate,
+      reason: reason.trim(),
     });
 
     res.status(201).json({
@@ -115,8 +115,9 @@ if (attendance) {
       message: "Leave applied successfully",
       leave,
     });
-
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -124,18 +125,9 @@ if (attendance) {
   }
 };
 
-
-
-
-
 export const myLeaveHistory = async (req, res) => {
   try {
-    // const employee = await Employee.findOne({
-    //   userId: req.user._id,
-    //   isDeleted: false,
-    // });
-
-      const employee = await Employee.findOne({
+    const employee = await Employee.findOne({
       userId: req.user._id,
       status: "Active",
     });

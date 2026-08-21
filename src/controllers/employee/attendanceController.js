@@ -1,13 +1,17 @@
 import Attendance from "../../models/Attendance.js";
 import Employee from "../../models/Employee.js";
+import {isCompanyHoliday,} from "../../utils/calendarUtils.js";
+
 
 const getToday = () => {
   const today = new Date();
+
   today.setHours(0, 0, 0, 0);
+
   return today;
 };
 
-// Check In
+
 export const checkIn = async (req, res) => {
   try {
     const employee = await Employee.findOne({
@@ -24,56 +28,86 @@ export const checkIn = async (req, res) => {
 
     const today = getToday();
 
-    // const already = await Attendance.findOne({
-    //   employee: employee._id,
-    //   date: today,
-    // });
+    
+    if (isCompanyHoliday(today)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Today is a company holiday. Check-in is not allowed.",
+      });
+    }
 
-    // if (already) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Already checked in",
-    //   });
-    // }
-
-
+  
     const already = await Attendance.findOne({
-  employee: employee._id,
-  date: today,
-});
+      employee: employee._id,
+      date: today,
+    });
 
-// Employee leave a Ache
-if (already && already.status === "Leave") {
-  return res.status(400).json({
-    success: false,
-    message: "You are on approved leave today. Check-in is not allowed.",
-  });
-}
+    if (already) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already checked in today.",
+      });
+    }
 
-if (already) {
-  return res.status(400).json({
-    success: false,
-    message: "Already checked in",
-  });
-}
+    const checkInTime = new Date();
 
+   
+    const lateTime = new Date(checkInTime);
 
+    lateTime.setHours(10, 20, 0, 0);
 
-    const { mode } = req.body;
+    const isLateCheckIn = checkInTime > lateTime;
 
+    const { mode, checkInRemark } = req.body;
+
+    
+    if (isLateCheckIn && !checkInRemark?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "You are checking in late. Please provide a remark.",
+      });
+    }
+
+    
     const attendance = await Attendance.create({
       employee: employee._id,
       date: today,
-      checkIn: new Date(),
+      checkIn: checkInTime,
+
+      workingMinutes: 0,
+      paidMinutes: 0,
+      workingHours: 0,
+
+      status: "Present",
+
       mode: mode || "Office",
+
+      isLateCheckIn,
+      checkInRemark: isLateCheckIn
+        ? checkInRemark.trim()
+        : "",
+
+      isEarlyCheckOut: false,
+      checkOutRemark: "",
+
+      adminReviewed: false,
+      adminRemark: "",
     });
 
     res.status(201).json({
       success: true,
-      message: "Checked in successfully",
+
+      message: isLateCheckIn
+        ? "Checked in successfully. Late check-in recorded."
+        : "Checked in successfully.",
+
       attendance,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -81,14 +115,10 @@ if (already) {
   }
 };
 
-// Check Out
+
+
 export const checkOut = async (req, res) => {
   try {
-    // const employee = await Employee.findOne({
-    //   userId: req.user._id,
-    //   isDeleted: false,
-    // });
-
     const employee = await Employee.findOne({
       userId: req.user._id,
       status: "Active",
@@ -103,66 +133,105 @@ export const checkOut = async (req, res) => {
 
     const today = getToday();
 
-    // const attendance = await Attendance.findOne({
-    //   employee: employee._id,
-    //   date: today,
-    // });
-
-    // if (!attendance) {
-    //   return res.status(404).json({
-    //     success: false,
-    //     message: "Check in first",
-    //   });
-    // }
-
-    // if (attendance.checkOut) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Already checked out",
-    //   });
-    // }
-
     const attendance = await Attendance.findOne({
-  employee: employee._id,
-  date: today,
-});
+      employee: employee._id,
+      date: today,
+    });
 
-if (!attendance) {
-  return res.status(404).json({
-    success: false,
-    message: "Check in first",
-  });
-}
+   
+    if (!attendance) {
+      return res.status(404).json({
+        success: false,
+        message: "Please check in first.",
+      });
+    }
 
+    
+    if (attendance.checkOut) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already checked out today.",
+      });
+    }
 
-if (attendance.status === "Leave") {
-  return res.status(400).json({
-    success: false,
-    message: "You are on approved leave today. Check-out is not allowed.",
-  });
-}
+    const checkOutTime = new Date();
 
-if (attendance.checkOut) {
-  return res.status(400).json({
-    success: false,
-    message: "Already checked out",
-  });
-}
+   
+    const totalMilliseconds =
+      checkOutTime - attendance.checkIn;
 
-    attendance.checkOut = new Date();
+    const workingMinutes = Math.floor(
+      totalMilliseconds / (1000 * 60)
+    );
 
-    const diff = (attendance.checkOut - attendance.checkIn) / (1000 * 60 * 60);
+   
+    const paidMinutes = Math.min(
+      workingMinutes,
+      540
+    );
 
-    attendance.workingHours = Number(diff.toFixed(2));
+    const workingHours = Number(
+      (workingMinutes / 60).toFixed(2)
+    );
+
+   
+
+    const earlyCheckoutTime = new Date(checkOutTime);
+
+    earlyCheckoutTime.setHours(18, 45, 0, 0);
+
+    const isEarlyCheckOut =
+      checkOutTime < earlyCheckoutTime;
+
+    const { checkOutRemark } = req.body;
+
+    
+    if (
+      isEarlyCheckOut &&
+      !checkOutRemark?.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "You are checking out early. Please provide a remark.",
+      });
+    }
+
+// save attendance
+
+    attendance.checkOut = checkOutTime;
+
+    attendance.workingMinutes =
+      workingMinutes;
+
+    attendance.paidMinutes =
+      paidMinutes;
+
+    attendance.workingHours =
+      workingHours;
+
+    attendance.isEarlyCheckOut =
+      isEarlyCheckOut;
+
+    attendance.checkOutRemark =
+      isEarlyCheckOut
+        ? checkOutRemark.trim()
+        : "";
 
     await attendance.save();
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Checked out successfully",
+
+      message: isEarlyCheckOut
+        ? "Checked out successfully. Early checkout recorded."
+        : "Checked out successfully.",
+
       attendance,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -170,18 +239,24 @@ if (attendance.checkOut) {
   }
 };
 
-// Attendance History
-export const attendanceHistory = async (req, res) => {
-  try {
-    // const employee = await Employee.findOne({
-    //   userId: req.user._id,
-    //   isDeleted: false,
-    // });
 
+
+export const attendanceHistory = async (
+  req,
+  res
+) => {
+  try {
     const employee = await Employee.findOne({
       userId: req.user._id,
       status: "Active",
     });
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
 
     const history = await Attendance.find({
       employee: employee._id,
@@ -189,12 +264,14 @@ export const attendanceHistory = async (req, res) => {
       date: -1,
     });
 
-    res.json({
+    res.status(200).json({
       success: true,
       total: history.length,
       history,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
