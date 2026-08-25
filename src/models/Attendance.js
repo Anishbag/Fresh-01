@@ -49,7 +49,6 @@
 
 // export default mongoose.model("Attendance", attendanceSchema);
 
-
 import mongoose from "mongoose";
 
 const attendanceSchema = new mongoose.Schema(
@@ -81,13 +80,11 @@ const attendanceSchema = new mongoose.Schema(
       default: 0,
     },
 
-    
     paidMinutes: {
       type: Number,
       default: 0,
     },
 
-   
     workingHours: {
       type: Number,
       default: 0,
@@ -105,7 +102,6 @@ const attendanceSchema = new mongoose.Schema(
       default: "Office",
     },
 
-    
     isLateCheckIn: {
       type: Boolean,
       default: false,
@@ -117,7 +113,6 @@ const attendanceSchema = new mongoose.Schema(
       trim: true,
     },
 
-    
     isEarlyCheckOut: {
       type: Boolean,
       default: false,
@@ -129,17 +124,35 @@ const attendanceSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // // Admin review
-    // adminReviewed: {
-    //   type: Boolean,
-    //   default: false,
-    // },
+    adminApproved: {
+      type: Boolean,
+      default: false,
+    },
 
-    // adminRemark: {
-    //   type: String,
-    //   default: "",
-    //   trim: true,
-    // },
+    adminApprovedMinutes: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 540,
+    },
+
+    adminRemark: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    adminApprovedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    adminApprovedAt: {
+      type: Date,
+      default: null,
+    },
+    
   },
   {
     timestamps: true,
@@ -156,7 +169,4 @@ attendanceSchema.index(
   },
 );
 
-export default mongoose.model(
-  "Attendance",
-  attendanceSchema,
-);
+export default mongoose.model("Attendance", attendanceSchema);
