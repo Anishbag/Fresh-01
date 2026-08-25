@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const salarySlipSchema = new mongoose.Schema(
+const salarySchema = new mongoose.Schema(
   {
     employee: {
       type: mongoose.Schema.Types.ObjectId,
@@ -18,11 +18,6 @@ const salarySlipSchema = new mongoose.Schema(
     year: {
       type: Number,
       required: true,
-    },
-
-    bankAccount: {
-      type: String,
-      default: "",
     },
 
     grossSalary: {
@@ -93,60 +88,30 @@ const salarySlipSchema = new mongoose.Schema(
 
     pfApplicable: {
       type: Boolean,
-      default: true,
-    },
-
-    pfPercentage: {
-      type: Number,
-      default: 12,
-      min: 0,
-      max: 100,
+      default: false,
     },
 
     pfWage: {
       type: Number,
       default: 0,
-      min: 0,
     },
 
     employeePF: {
       type: Number,
       default: 0,
-      min: 0,
     },
 
     employerPF: {
       type: Number,
       default: 0,
-      min: 0,
     },
 
     professionalTax: {
       type: Number,
       default: 0,
-      min: 0,
     },
 
-    earnings: [
-      {
-        label: String,
-        amount: Number,
-      },
-    ],
-
-    deductions: [
-      {
-        label: String,
-        amount: Number,
-      },
-    ],
-
-    totalEarnings: {
-      type: Number,
-      default: 0,
-    },
-
-    totalDeductions: {
+    totalDeduction: {
       type: Number,
       default: 0,
       min: 0,
@@ -158,15 +123,26 @@ const salarySlipSchema = new mongoose.Schema(
       min: 0,
     },
 
-    totalSalary: {
-      type: Number,
-      required: true,
-      min: 0,
+    status: {
+      type: String,
+      enum: ["Draft", "Finalized"],
+      default: "Draft",
     },
 
     generatedAt: {
       type: Date,
       default: Date.now,
+    },
+
+    finalizedAt: {
+      type: Date,
+      default: null,
+    },
+
+    finalizedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
     },
   },
   {
@@ -174,7 +150,8 @@ const salarySlipSchema = new mongoose.Schema(
   },
 );
 
-salarySlipSchema.index(
+
+salarySchema.index(
   {
     employee: 1,
     month: 1,
@@ -185,4 +162,4 @@ salarySlipSchema.index(
   },
 );
 
-export default mongoose.model("SalarySlip", salarySlipSchema);
+export default mongoose.model("Salary", salarySchema);
