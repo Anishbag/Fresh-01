@@ -1,4 +1,5 @@
 import Leave from "../models/Leave.js";
+import Attendance from "../models/Attendance.js";
 
 export const isWorkingDay = (date) => {
   const day = date.getDay();
@@ -175,5 +176,75 @@ export const calculatePaidAndUnpaidLeaves = async (employeeId, month, year) => {
     unpaidSickLeaveDays,
 
     totalUnpaidLeaveDays: unpaidCasualLeaveDays + unpaidSickLeaveDays,
+  };
+};
+
+export const ensureMonthlyAttendance = async (employeeId, month, year) => {
+  const { monthStart, monthEnd } = getMonthDateRange(month, year);
+
+  let absentDays = 0;
+
+  const currentDate = new Date(monthStart);
+
+  while (currentDate <= monthEnd) {
+    const attendanceDate = new Date(currentDate);
+    attendanceDate.setHours(0, 0, 0, 0);
+
+    if (isWorkingDay(attendanceDate)) {
+      const nextDate = new Date(attendanceDate);
+
+      nextDate.setDate(nextDate.getDate() + 1);
+
+      const existingAttendance = await Attendance.findOne({
+        employee: employeeId,
+
+        date: {
+          $gte: attendanceDate,
+          $lt: nextDate,
+        },
+      });
+
+      if (!existingAttendance) {
+        const approvedLeave = await Leave.findOne({
+          employee: employeeId,
+
+          status: "Approved",
+
+          fromDate: {
+            $lte: attendanceDate,
+          },
+
+          toDate: {
+            $gte: attendanceDate,
+          },
+        });
+
+        if (approvedLeave) {
+          await Attendance.create({
+            employee: employeeId,
+            date: attendanceDate,
+            status: "Leave",
+            mode: "Office",
+          });
+        } else {
+          await Attendance.create({
+            employee: employeeId,
+            date: attendanceDate,
+            status: "Absent",
+            mode: "Office",
+          });
+
+          absentDays++;
+        }
+      } else if (existingAttendance.status === "Absent") {
+        absentDays++;
+      }
+    }
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return {
+    absentDays,
   };
 };

@@ -5,6 +5,7 @@ import {
   getWorkingDaysInMonth,
   calculateNormalLeaveDays,
   calculatePaidAndUnpaidLeaves,
+  ensureMonthlyAttendance,
 } from "./salaryUtils.js";
 
 export const calculateProfessionalTax = (salary) => {
@@ -135,9 +136,22 @@ export const calculateEmployeeSalary = async ({
 }) => {
   const salary = Number(grossSalary || 0);
 
+  // if (salary < 0) {
+  //   throw new Error("Gross salary cannot be negative.");
+  // }
+
+  // const workingDays = getWorkingDaysInMonth(month, year);
   if (salary < 0) {
     throw new Error("Gross salary cannot be negative.");
   }
+
+  const attendanceStatus = await ensureMonthlyAttendance(
+    employeeId,
+    month,
+    year,
+  );
+
+  const absentDays = attendanceStatus.absentDays;
 
   const workingDays = getWorkingDaysInMonth(month, year);
 
@@ -166,6 +180,9 @@ export const calculateEmployeeSalary = async ({
   const leaveDeduction = Number(
     (unpaidLeaveMinutes * perMinuteSalary).toFixed(2),
   );
+  const absentMinutes = absentDays * 540;
+
+  const absentDeduction = Number((absentMinutes * perMinuteSalary).toFixed(2));
 
   const attendanceCalculation = await calculateAttendanceSalary(
     employeeId,
@@ -174,13 +191,22 @@ export const calculateEmployeeSalary = async ({
     perMinuteSalary,
   );
 
-  const pfCalculation = calculatePF(salary, pfPercentage, );
+  const pfCalculation = calculatePF(salary, pfPercentage);
 
   const professionalTax = calculateProfessionalTax(salary);
 
+  // const totalDeduction = Number(
+  //   (
+  //     leaveDeduction +
+  //     attendanceCalculation.earlyCheckoutDeduction +
+  //     pfCalculation.employeePF +
+  //     professionalTax
+  //   ).toFixed(2),
+  // );
   const totalDeduction = Number(
     (
       leaveDeduction +
+      absentDeduction +
       attendanceCalculation.earlyCheckoutDeduction +
       pfCalculation.employeePF +
       professionalTax
@@ -201,6 +227,10 @@ export const calculateEmployeeSalary = async ({
     paidSickLeaveDays: leaveCalculation.paidSickLeaveDays,
 
     unpaidLeaveDays,
+
+    absentDays,
+
+    absentDeduction,
 
     actualWorkingMinutes: attendanceCalculation.actualWorkingMinutes,
 

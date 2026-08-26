@@ -61,7 +61,7 @@ export const generateSalary = async (req, res) => {
         month: monthNumber,
         year: yearNumber,
 
-        pfApplicable: true,
+        // pfApplicable: true,
 
         pfPercentage: Number(pfPercentage),
       });
@@ -104,6 +104,13 @@ export const generateSalary = async (req, res) => {
         deductions.push({
           label: "Leave Deduction",
           amount: calculation.leaveDeduction,
+        });
+      }
+
+      if (calculation.absentDeduction > 0) {
+        deductions.push({
+          label: "Absent Deduction",
+          amount: calculation.absentDeduction,
         });
       }
 
@@ -154,6 +161,10 @@ export const generateSalary = async (req, res) => {
         paidSickLeaveDays: calculation.paidSickLeaveDays,
 
         unpaidLeaveDays: calculation.unpaidLeaveDays,
+
+        absentDays: calculation.absentDays,
+
+        absentDeduction: calculation.absentDeduction,
 
         actualWorkingMinutes: calculation.actualWorkingMinutes,
 
@@ -363,7 +374,7 @@ export const generateSingleSalary = async (req, res) => {
 
       year: Number(year),
 
-      pfApplicable: true,
+      // pfApplicable: true,
 
       pfPercentage: Number(pfPercentage),
     });
@@ -409,6 +420,13 @@ export const generateSingleSalary = async (req, res) => {
         label: "Leave Deduction",
 
         amount: calculation.leaveDeduction,
+      });
+    }
+
+    if (calculation.absentDeduction > 0) {
+      deductions.push({
+        label: "Absent Deduction",
+        amount: calculation.absentDeduction,
       });
     }
 
@@ -460,6 +478,10 @@ export const generateSingleSalary = async (req, res) => {
       paidSickLeaveDays: calculation.paidSickLeaveDays,
 
       unpaidLeaveDays: calculation.unpaidLeaveDays,
+
+      absentDays: calculation.absentDays,
+
+      absentDeduction: calculation.absentDeduction,
 
       actualWorkingMinutes: calculation.actualWorkingMinutes,
 
