@@ -61,6 +61,14 @@ const salarySlipSchema = new mongoose.Schema(
       min: 0,
     },
 
+    
+
+    earnedGrossSalary: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     absentDays: {
       type: Number,
       default: 0,

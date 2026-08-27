@@ -55,62 +55,43 @@ export const generateSalary = async (req, res) => {
 
       const grossSalary = Number(employee.salary || 0);
 
+      // const calculation = await calculateEmployeeSalary({
+      //   employeeId: employee._id,
+      //   grossSalary,
+      //   month: monthNumber,
+      //   year: yearNumber,
+
+      //   // pfApplicable: true,
+
+      //   pfPercentage: Number(pfPercentage),
+      // });
+
+      const earningConfigs = configs.filter(
+        (config) => config.type === "Earning",
+      );
+
       const calculation = await calculateEmployeeSalary({
         employeeId: employee._id,
         grossSalary,
         month: monthNumber,
         year: yearNumber,
-
-        // pfApplicable: true,
-
         pfPercentage: Number(pfPercentage),
+        earningConfigs,
       });
 
-      const earnings = [];
       const deductions = [];
 
-      let totalEarnings = 0;
-      let totalConfiguredDeductions = 0;
-
-      for (const config of configs) {
-        let amount = 0;
-
-        if (config.mode === "% of gross") {
-          amount = (grossSalary * Number(config.value)) / 100;
-        } else {
-          amount = Number(config.value);
-        }
-
-        amount = Number(amount.toFixed(2));
-
-        if (config.type === "Earning") {
-          earnings.push({
-            label: config.label,
-            amount,
-          });
-
-          totalEarnings += amount;
-        } else {
-          deductions.push({
-            label: config.label,
-            amount,
-          });
-
-          totalConfiguredDeductions += amount;
-        }
+      if (calculation.absentDeduction > 0) {
+        deductions.push({
+          label: "Absent Deduction",
+          amount: calculation.absentDeduction,
+        });
       }
 
       if (calculation.leaveDeduction > 0) {
         deductions.push({
           label: "Leave Deduction",
           amount: calculation.leaveDeduction,
-        });
-      }
-
-      if (calculation.absentDeduction > 0) {
-        deductions.push({
-          label: "Absent Deduction",
-          amount: calculation.absentDeduction,
         });
       }
 
@@ -131,13 +112,51 @@ export const generateSalary = async (req, res) => {
         amount: calculation.professionalTax,
       });
 
-      const automaticDeductions = calculation.totalDeduction;
+      // if (calculation.leaveDeduction > 0) {
+      //   deductions.push({
+      //     label: "Leave Deduction",
+      //     amount: calculation.leaveDeduction,
+      //   });
+      // }
 
+      // if (calculation.absentDeduction > 0) {
+      //   deductions.push({
+      //     label: "Absent Deduction",
+      //     amount: calculation.absentDeduction,
+      //   });
+      // }
+
+      // if (calculation.earlyCheckoutDeduction > 0) {
+      //   deductions.push({
+      //     label: "Early Checkout Deduction",
+      //     amount: calculation.earlyCheckoutDeduction,
+      //   });
+      // }
+
+      // deductions.push({
+      //   label: `Employee PF (${calculation.pfPercentage}%)`,
+      //   amount: calculation.employeePF,
+      // });
+
+      // deductions.push({
+      //   label: "Professional Tax",
+      //   amount: calculation.professionalTax,
+      // });
+
+      // const totalDeductions = Number(
+      //   (calculation.employeePF + calculation.professionalTax).toFixed(2),
+      // );
       const totalDeductions = Number(
-        (totalConfiguredDeductions + automaticDeductions).toFixed(2),
+        (
+          calculation.absentDeduction +
+          calculation.leaveDeduction +
+          calculation.earlyCheckoutDeduction +
+          calculation.employeePF +
+          calculation.professionalTax
+        ).toFixed(2),
       );
 
-      const totalSalary = Number(grossSalary.toFixed(2));
+      const totalSalary = Number(calculation.earnedGrossSalary.toFixed(2));
 
       const netSalary = Number(
         Math.max(totalSalary - totalDeductions, 0).toFixed(2),
@@ -150,9 +169,13 @@ export const generateSalary = async (req, res) => {
 
         year: yearNumber,
 
+        bankAccount: employee.bankAccount || "",
+
         grossSalary,
 
         workingDays: calculation.workingDays,
+
+        earnedGrossSalary: calculation.earnedGrossSalary,
 
         totalAvailableMinutes: calculation.totalAvailableMinutes,
 
@@ -188,11 +211,11 @@ export const generateSalary = async (req, res) => {
 
         professionalTax: calculation.professionalTax,
 
-        earnings,
+        earnings: calculation.earnings,
 
         deductions,
 
-        totalEarnings: Number(totalEarnings.toFixed(2)),
+        totalEarnings: calculation.totalEarnings,
 
         totalDeductions,
 
@@ -365,6 +388,10 @@ export const generateSingleSalary = async (req, res) => {
 
     const grossSalary = Number(employee.salary || 0);
 
+    const earningConfigs = configs.filter(
+      (config) => config.type === "Earning",
+    );
+
     const calculation = await calculateEmployeeSalary({
       employeeId: employee._id,
 
@@ -374,54 +401,12 @@ export const generateSingleSalary = async (req, res) => {
 
       year: Number(year),
 
-      // pfApplicable: true,
-
       pfPercentage: Number(pfPercentage),
+
+      earningConfigs,
     });
 
-    const earnings = [];
     const deductions = [];
-
-    let totalEarnings = 0;
-    let totalConfiguredDeductions = 0;
-
-    for (const config of configs) {
-      let amount = 0;
-
-      if (config.mode === "% of gross") {
-        amount = (grossSalary * Number(config.value)) / 100;
-      } else {
-        amount = Number(config.value);
-      }
-
-      amount = Number(amount.toFixed(2));
-
-      if (config.type === "Earning") {
-        earnings.push({
-          label: config.label,
-
-          amount,
-        });
-
-        totalEarnings += amount;
-      } else {
-        deductions.push({
-          label: config.label,
-
-          amount,
-        });
-
-        totalConfiguredDeductions += amount;
-      }
-    }
-
-    if (calculation.leaveDeduction > 0) {
-      deductions.push({
-        label: "Leave Deduction",
-
-        amount: calculation.leaveDeduction,
-      });
-    }
 
     if (calculation.absentDeduction > 0) {
       deductions.push({
@@ -430,31 +415,79 @@ export const generateSingleSalary = async (req, res) => {
       });
     }
 
+    if (calculation.leaveDeduction > 0) {
+      deductions.push({
+        label: "Leave Deduction",
+        amount: calculation.leaveDeduction,
+      });
+    }
+
     if (calculation.earlyCheckoutDeduction > 0) {
       deductions.push({
         label: "Early Checkout Deduction",
-
         amount: calculation.earlyCheckoutDeduction,
       });
     }
 
     deductions.push({
       label: `Employee PF (${calculation.pfPercentage}%)`,
-
       amount: calculation.employeePF,
     });
 
     deductions.push({
       label: "Professional Tax",
-
       amount: calculation.professionalTax,
     });
 
+    // if (calculation.leaveDeduction > 0) {
+    //   deductions.push({
+    //     label: "Leave Deduction",
+
+    //     amount: calculation.leaveDeduction,
+    //   });
+    // }
+
+    // if (calculation.absentDeduction > 0) {
+    //   deductions.push({
+    //     label: "Absent Deduction",
+    //     amount: calculation.absentDeduction,
+    //   });
+    // }
+
+    // if (calculation.earlyCheckoutDeduction > 0) {
+    //   deductions.push({
+    //     label: "Early Checkout Deduction",
+
+    //     amount: calculation.earlyCheckoutDeduction,
+    //   });
+    // }
+
+    // deductions.push({
+    //   label: `Employee PF (${calculation.pfPercentage}%)`,
+
+    //   amount: calculation.employeePF,
+    // });
+
+    // deductions.push({
+    //   label: "Professional Tax",
+
+    //   amount: calculation.professionalTax,
+    // });
+
+    // const totalDeductions = Number(
+    //   (calculation.employeePF + calculation.professionalTax).toFixed(2),
+    // );
     const totalDeductions = Number(
-      (totalConfiguredDeductions + calculation.totalDeduction).toFixed(2),
+      (
+        calculation.absentDeduction +
+        calculation.leaveDeduction +
+        calculation.earlyCheckoutDeduction +
+        calculation.employeePF +
+        calculation.professionalTax
+      ).toFixed(2),
     );
 
-    const totalSalary = Number(grossSalary.toFixed(2));
+    const totalSalary = Number(calculation.earnedGrossSalary.toFixed(2));
 
     const netSalary = Number(
       Math.max(totalSalary - totalDeductions, 0).toFixed(2),
@@ -467,7 +500,11 @@ export const generateSingleSalary = async (req, res) => {
 
       year: Number(year),
 
+      bankAccount: employee.bankAccount || "",
+
       grossSalary,
+
+      earnedGrossSalary: calculation.earnedGrossSalary,
 
       workingDays: calculation.workingDays,
 
@@ -505,11 +542,13 @@ export const generateSingleSalary = async (req, res) => {
 
       professionalTax: calculation.professionalTax,
 
-      earnings,
+      earnings: calculation.earnings,
 
       deductions,
 
-      totalEarnings: Number(totalEarnings.toFixed(2)),
+      // totalEarnings: Number(totalEarnings.toFixed(2)),
+
+      totalEarnings: calculation.totalEarnings,
 
       totalDeductions,
 

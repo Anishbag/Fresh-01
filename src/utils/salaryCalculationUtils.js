@@ -30,8 +30,8 @@ export const calculateProfessionalTax = (salary) => {
   return 200;
 };
 
-export const calculatePF = (grossSalary, pfPercentage = 12) => {
-  const salary = Number(grossSalary || 0);
+export const calculatePF = (earnedBasicSalary, pfPercentage = 12) => {
+  const basicSalary = Number(earnedBasicSalary || 0);
 
   let percentage = Number(pfPercentage);
 
@@ -41,7 +41,7 @@ export const calculatePF = (grossSalary, pfPercentage = 12) => {
 
   percentage = Math.min(Math.max(percentage, 0), 100);
 
-  const pfWage = salary;
+  const pfWage = Number(basicSalary.toFixed(2));
 
   const employeePF = Number(((pfWage * percentage) / 100).toFixed(2));
 
@@ -98,9 +98,7 @@ export const calculateAttendanceSalary = async (
     finalPaidMinutes += paidMinutes;
 
     if (attendance.checkOut && attendance.isEarlyCheckOut) {
-      const shortageMinutes = Math.max(540 - paidMinutes, 0);
-
-      earlyCheckoutMinutes += shortageMinutes;
+      earlyCheckoutMinutes += Math.max(540 - paidMinutes, 0);
     }
   }
 
@@ -123,35 +121,17 @@ export const calculateAttendanceSalary = async (
 
 export const calculateEmployeeSalary = async ({
   employeeId,
-
   grossSalary,
-
   month,
-
   year,
-
-  // pfApplicable = true,
-
   pfPercentage = 12,
+  earningConfigs = [],
 }) => {
   const salary = Number(grossSalary || 0);
 
-  // if (salary < 0) {
-  //   throw new Error("Gross salary cannot be negative.");
-  // }
-
-  // const workingDays = getWorkingDaysInMonth(month, year);
   if (salary < 0) {
     throw new Error("Gross salary cannot be negative.");
   }
-
-  const attendanceStatus = await ensureMonthlyAttendance(
-    employeeId,
-    month,
-    year,
-  );
-
-  const absentDays = attendanceStatus.absentDays;
 
   const workingDays = getWorkingDaysInMonth(month, year);
 
@@ -159,6 +139,14 @@ export const calculateEmployeeSalary = async ({
 
   const perMinuteSalary =
     totalAvailableMinutes > 0 ? salary / totalAvailableMinutes : 0;
+
+  const attendanceStatus = await ensureMonthlyAttendance(
+    employeeId,
+    month,
+    year,
+  );
+
+  const absentDays = Number(attendanceStatus.absentDays || 0);
 
   const normalLeaveDays = await calculateNormalLeaveDays(
     employeeId,
@@ -175,14 +163,8 @@ export const calculateEmployeeSalary = async ({
   const unpaidLeaveDays =
     normalLeaveDays + leaveCalculation.totalUnpaidLeaveDays;
 
-  const unpaidLeaveMinutes = unpaidLeaveDays * 540;
-
-  const leaveDeduction = Number(
-    (unpaidLeaveMinutes * perMinuteSalary).toFixed(2),
-  );
-  const absentMinutes = absentDays * 540;
-
-  const absentDeduction = Number((absentMinutes * perMinuteSalary).toFixed(2));
+  const paidLeaveDays =
+    leaveCalculation.paidCasualLeaveDays + leaveCalculation.paidSickLeaveDays;
 
   const attendanceCalculation = await calculateAttendanceSalary(
     employeeId,
@@ -191,32 +173,76 @@ export const calculateEmployeeSalary = async ({
     perMinuteSalary,
   );
 
-  const pfCalculation = calculatePF(salary, pfPercentage);
+  const paidAttendanceMinutes = attendanceCalculation.finalPaidMinutes;
 
-  const professionalTax = calculateProfessionalTax(salary);
+  const paidLeaveMinutes = paidLeaveDays * 540;
 
-  // const totalDeduction = Number(
-  //   (
-  //     leaveDeduction +
-  //     attendanceCalculation.earlyCheckoutDeduction +
-  //     pfCalculation.employeePF +
-  //     professionalTax
-  //   ).toFixed(2),
-  // );
-  const totalDeduction = Number(
-    (
-      leaveDeduction +
-      absentDeduction +
-      attendanceCalculation.earlyCheckoutDeduction +
-      pfCalculation.employeePF +
-      professionalTax
-    ).toFixed(2),
+  const totalPaidMinutes = paidAttendanceMinutes + paidLeaveMinutes;
+
+  const earnedGrossSalary = Number(
+    (totalPaidMinutes * perMinuteSalary).toFixed(2),
   );
 
-  const netSalary = Number(Math.max(salary - totalDeduction, 0).toFixed(2));
+  const absentDeduction = Number(
+    (absentDays * 540 * perMinuteSalary).toFixed(2),
+  );
+
+  const leaveDeduction = Number(
+    (unpaidLeaveDays * 540 * perMinuteSalary).toFixed(2),
+  );
+
+  const earnings = [];
+
+  let totalEarnings = 0;
+
+  let earnedBasicSalary = 0;
+
+  for (const config of earningConfigs) {
+    const percentage = Number(config.value || 0);
+
+    const amount = Number(((earnedGrossSalary * percentage) / 100).toFixed(2));
+
+    earnings.push({
+      label: config.label,
+      percentage,
+      amount,
+    });
+
+    totalEarnings += amount;
+
+    if (config.label.trim().toLowerCase() === "basic") {
+      earnedBasicSalary = amount;
+    }
+  }
+
+  totalEarnings = Number(totalEarnings.toFixed(2));
+
+  const pfCalculation = calculatePF(earnedBasicSalary, pfPercentage);
+
+  const professionalTax = calculateProfessionalTax(earnedGrossSalary);
+
+  // const totalDeduction = Number(
+  //   (pfCalculation.employeePF + professionalTax).toFixed(2),
+  // );
+
+  const totalDeduction = Number(
+  (
+    absentDeduction +
+    leaveDeduction +
+    attendanceCalculation.earlyCheckoutDeduction +
+    pfCalculation.employeePF +
+    professionalTax
+  ).toFixed(2),
+);
+
+  const netSalary = Number(
+    Math.max(earnedGrossSalary - totalDeduction, 0).toFixed(2),
+  );
 
   return {
     grossSalary: salary,
+
+    earnedGrossSalary,
 
     workingDays,
 
@@ -228,6 +254,8 @@ export const calculateEmployeeSalary = async ({
 
     unpaidLeaveDays,
 
+    paidLeaveDays,
+
     absentDays,
 
     absentDeduction,
@@ -236,13 +264,21 @@ export const calculateEmployeeSalary = async ({
 
     finalPaidMinutes: attendanceCalculation.finalPaidMinutes,
 
-    earlyCheckoutMinutes: attendanceCalculation.earlyCheckoutMinutes,
+    paidLeaveMinutes,
 
-    leaveDeduction,
+    totalPaidMinutes,
+
+    earlyCheckoutMinutes: attendanceCalculation.earlyCheckoutMinutes,
 
     earlyCheckoutDeduction: attendanceCalculation.earlyCheckoutDeduction,
 
-    // pfApplicable: pfApplicable,
+    leaveDeduction,
+
+    earnings,
+
+    totalEarnings,
+
+    earnedBasicSalary,
 
     pfPercentage: pfCalculation.pfPercentage,
 
