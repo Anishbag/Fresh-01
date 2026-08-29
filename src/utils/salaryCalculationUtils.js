@@ -97,9 +97,9 @@ export const calculateAttendanceSalary = async (
 
     finalPaidMinutes += paidMinutes;
 
-    if (attendance.checkOut && attendance.isEarlyCheckOut) {
-      earlyCheckoutMinutes += Math.max(540 - paidMinutes, 0);
-    }
+   if (attendance.checkOut) {
+  earlyCheckoutMinutes += Math.max(540 - paidMinutes, 0);
+}
   }
 
   const earlyCheckoutDeduction = Number(
@@ -175,21 +175,31 @@ export const calculateEmployeeSalary = async ({
 
   const paidAttendanceMinutes = attendanceCalculation.finalPaidMinutes;
 
-  const paidLeaveMinutes = paidLeaveDays * 540;
+const paidLeaveMinutes = paidLeaveDays * 540;
 
-  const totalPaidMinutes = paidAttendanceMinutes + paidLeaveMinutes;
+const totalPaidMinutes =
+  paidAttendanceMinutes + paidLeaveMinutes;
 
-  const earnedGrossSalary = Number(
-    (totalPaidMinutes * perMinuteSalary).toFixed(2),
-  );
+const absentDeduction = Number(
+  (absentDays * 540 * perMinuteSalary).toFixed(2),
+);
 
-  const absentDeduction = Number(
-    (absentDays * 540 * perMinuteSalary).toFixed(2),
-  );
+const leaveDeduction = Number(
+  (unpaidLeaveDays * 540 * perMinuteSalary).toFixed(2),
+);
 
-  const leaveDeduction = Number(
-    (unpaidLeaveDays * 540 * perMinuteSalary).toFixed(2),
-  );
+const earlyCheckoutDeduction =
+  attendanceCalculation.earlyCheckoutDeduction;
+
+const earnedGrossSalary = Number(
+  Math.max(
+    salary -
+      absentDeduction -
+      leaveDeduction -
+      earlyCheckoutDeduction,
+    0,
+  ).toFixed(2),
+);
 
   const earnings = [];
 
@@ -221,12 +231,12 @@ export const calculateEmployeeSalary = async ({
 
   const professionalTax = calculateProfessionalTax(earnedGrossSalary);
 
-  // const totalDeduction = Number(
-  //   (pfCalculation.employeePF + professionalTax).toFixed(2),
-  // );
+  
 
 const totalDeduction = Number(
   (
+    absentDeduction +
+    leaveDeduction +
     attendanceCalculation.earlyCheckoutDeduction +
     pfCalculation.employeePF +
     professionalTax
@@ -234,7 +244,7 @@ const totalDeduction = Number(
 );
 
 const netSalary = Number(
-  Math.max(earnedGrossSalary - totalDeduction, 0).toFixed(2),
+  Math.max(salary - totalDeduction, 0).toFixed(2),
 );
 
   return {

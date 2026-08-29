@@ -81,12 +81,12 @@ export const generateSalary = async (req, res) => {
 
       const deductions = [];
 
-      // if (calculation.absentDeduction > 0) {
-      //   deductions.push({
-      //     label: "Absent Deduction",
-      //     amount: calculation.absentDeduction,
-      //   });
-      // }
+      if (calculation.absentDeduction > 0) {
+        deductions.push({
+          label: "Absent Deduction",
+          amount: calculation.absentDeduction,
+        });
+      }
 
       if (calculation.leaveDeduction > 0) {
         deductions.push({
@@ -112,19 +112,20 @@ export const generateSalary = async (req, res) => {
         amount: calculation.professionalTax,
       });
 
-      const totalDeductions = Number(
-        (
-          calculation.earlyCheckoutDeduction +
-          calculation.employeePF +
-          calculation.professionalTax
-        ).toFixed(2),
-      );
+     const totalDeductions = Number(
+  calculation.totalDeduction.toFixed(2)
+);
 
-      const totalSalary = Number(calculation.grossSalary.toFixed(2));
+      const totalSalary = Number(
+  calculation.grossSalary.toFixed(2)
+);
 
-      const netSalary = Number(
-        Math.max(calculation.earnedGrossSalary - totalDeductions, 0).toFixed(2),
-      );
+const netSalary = Number(
+  Math.max(
+    totalSalary - totalDeductions,
+    0
+  ).toFixed(2),
+);
 
       await SalarySlip.create({
         employee: employee._id,
@@ -372,12 +373,12 @@ export const generateSingleSalary = async (req, res) => {
 
     const deductions = [];
 
-    // if (calculation.absentDeduction > 0) {
-    //   deductions.push({
-    //     label: "Absent Deduction",
-    //     amount: calculation.absentDeduction,
-    //   });
-    // }
+    if (calculation.absentDeduction > 0) {
+      deductions.push({
+        label: "Absent Deduction",
+        amount: calculation.absentDeduction,
+      });
+    }
 
     if (calculation.leaveDeduction > 0) {
       deductions.push({
@@ -403,20 +404,20 @@ export const generateSingleSalary = async (req, res) => {
       amount: calculation.professionalTax,
     });
 
-    const totalDeductions = Number(
-      (
-        calculation.earlyCheckoutDeduction +
-        calculation.employeePF +
-        calculation.professionalTax
-      ).toFixed(2),
-    );
+  const totalDeductions = Number(
+  calculation.totalDeduction.toFixed(2)
+);
 
-    const totalSalary = Number(calculation.grossSalary.toFixed(2));
+    const totalSalary = Number(
+  calculation.grossSalary.toFixed(2)
+);
 
-    const netSalary = Number(
-      Math.max(calculation.earnedGrossSalary - totalDeductions, 0).toFixed(2),
-    );
-
+const netSalary = Number(
+  Math.max(
+    totalSalary - totalDeductions,
+    0
+  ).toFixed(2),
+);
     const salary = await SalarySlip.create({
       employee: employee._id,
 
