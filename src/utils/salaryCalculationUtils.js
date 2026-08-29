@@ -236,7 +236,8 @@ export const calculateEmployeeSalary = async ({
 );
 
   const netSalary = Number(
-    Math.max(earnedGrossSalary - totalDeduction, 0).toFixed(2),
+    // Math.max(earnedGrossSalary - totalDeduction, 0).toFixed(2),
+     Math.max(salary - totalDeduction, 0).toFixed(2),
   );
 
   return {

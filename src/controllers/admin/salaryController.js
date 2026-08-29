@@ -81,12 +81,12 @@ export const generateSalary = async (req, res) => {
 
       const deductions = [];
 
-      if (calculation.absentDeduction > 0) {
-        deductions.push({
-          label: "Absent Deduction",
-          amount: calculation.absentDeduction,
-        });
-      }
+      // if (calculation.absentDeduction > 0) {
+      //   deductions.push({
+      //     label: "Absent Deduction",
+      //     amount: calculation.absentDeduction,
+      //   });
+      // }
 
       if (calculation.leaveDeduction > 0) {
         deductions.push({
@@ -156,7 +156,8 @@ export const generateSalary = async (req, res) => {
         ).toFixed(2),
       );
 
-      const totalSalary = Number(calculation.earnedGrossSalary.toFixed(2));
+      // const totalSalary = Number(calculation.earnedGrossSalary.toFixed(2));
+      const totalSalary = Number(calculation.grossSalary.toFixed(2));
 
       const netSalary = Number(
         Math.max(totalSalary - totalDeductions, 0).toFixed(2),
@@ -408,12 +409,12 @@ export const generateSingleSalary = async (req, res) => {
 
     const deductions = [];
 
-    if (calculation.absentDeduction > 0) {
-      deductions.push({
-        label: "Absent Deduction",
-        amount: calculation.absentDeduction,
-      });
-    }
+    // if (calculation.absentDeduction > 0) {
+    //   deductions.push({
+    //     label: "Absent Deduction",
+    //     amount: calculation.absentDeduction,
+    //   });
+    // }
 
     if (calculation.leaveDeduction > 0) {
       deductions.push({
@@ -487,7 +488,8 @@ export const generateSingleSalary = async (req, res) => {
       ).toFixed(2),
     );
 
-    const totalSalary = Number(calculation.earnedGrossSalary.toFixed(2));
+    // const totalSalary = Number(calculation.earnedGrossSalary.toFixed(2));
+    const totalSalary = Number(calculation.grossSalary.toFixed(2));
 
     const netSalary = Number(
       Math.max(totalSalary - totalDeductions, 0).toFixed(2),
