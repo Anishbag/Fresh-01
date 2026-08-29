@@ -225,20 +225,17 @@ export const calculateEmployeeSalary = async ({
   //   (pfCalculation.employeePF + professionalTax).toFixed(2),
   // );
 
-  const totalDeduction = Number(
+const totalDeduction = Number(
   (
-    absentDeduction +
-    leaveDeduction +
     attendanceCalculation.earlyCheckoutDeduction +
     pfCalculation.employeePF +
     professionalTax
   ).toFixed(2),
 );
 
-  const netSalary = Number(
-    // Math.max(earnedGrossSalary - totalDeduction, 0).toFixed(2),
-     Math.max(salary - totalDeduction, 0).toFixed(2),
-  );
+const netSalary = Number(
+  Math.max(earnedGrossSalary - totalDeduction, 0).toFixed(2),
+);
 
   return {
     grossSalary: salary,
