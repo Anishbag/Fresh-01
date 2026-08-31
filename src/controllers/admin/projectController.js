@@ -53,7 +53,7 @@ export const getProjects = async (req, res) => {
     const projects = await Project.find()
       .populate(
         "assignedEmployees",
-        "employeeId firstName lastName"
+        "employeeId fullName"
       )
       .sort({ createdAt: -1 });
 
@@ -76,7 +76,7 @@ export const getProject = async (req, res) => {
     const project = await Project.findById(req.params.id)
       .populate(
         "assignedEmployees",
-        "employeeId firstName lastName"
+        "employeeId fullName"
       );
 
     if (!project) {
