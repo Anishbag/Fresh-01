@@ -6,7 +6,7 @@ import { calculateEmployeeSalary } from "../../utils/salaryCalculationUtils.js";
 
 export const generateSalary = async (req, res) => {
   try {
-    const { month, year, pfPercentage = 12 } = req.body;
+    const { month, year } = req.body;
 
     if (!month || !year) {
       return res.status(400).json({
@@ -55,29 +55,21 @@ export const generateSalary = async (req, res) => {
 
       const grossSalary = Number(employee.salary || 0);
 
-      // const calculation = await calculateEmployeeSalary({
-      //   employeeId: employee._id,
-      //   grossSalary,
-      //   month: monthNumber,
-      //   year: yearNumber,
-
-      //   // pfApplicable: true,
-
-      //   pfPercentage: Number(pfPercentage),
-      // });
+      
 
       const earningConfigs = configs.filter(
         (config) => config.type === "Earning",
       );
 
-      const calculation = await calculateEmployeeSalary({
-        employeeId: employee._id,
-        grossSalary,
-        month: monthNumber,
-        year: yearNumber,
-        pfPercentage: Number(pfPercentage),
-        earningConfigs,
-      });
+    const calculation = await calculateEmployeeSalary({
+  employeeId: employee._id,
+  grossSalary,
+  month: monthNumber,
+  year: yearNumber,
+  pfApplicable: employee.pfApplicable,
+  pfPercentage: 12,
+  earningConfigs,
+});
 
       const deductions = [];
 
@@ -102,15 +94,19 @@ export const generateSalary = async (req, res) => {
         });
       }
 
-      deductions.push({
-        label: `Employee PF (${calculation.pfPercentage}%)`,
-        amount: calculation.employeePF,
-      });
+    if (calculation.employeePF > 0) {
+  deductions.push({
+    label: `Employee PF (${calculation.pfPercentage}%)`,
+    amount: calculation.employeePF,
+  });
+}
 
-      deductions.push({
-        label: "Professional Tax",
-        amount: calculation.professionalTax,
-      });
+      if (calculation.professionalTax > 0) {
+  deductions.push({
+    label: "Professional Tax",
+    amount: calculation.professionalTax,
+  });
+}
 
      const totalDeductions = Number(
   calculation.totalDeduction.toFixed(2)
@@ -285,7 +281,7 @@ export const getSalarySlip = async (req, res) => {
   try {
     const salary = await SalarySlip.findById(req.params.id).populate(
       "employee",
-      "employeeId fullName email phone department designation bankAccount",
+      "employeeId fullName email phone department designation bankAccount joiningDate customFields",
     );
 
     if (!salary) {
@@ -295,10 +291,30 @@ export const getSalarySlip = async (req, res) => {
       });
     }
 
+
+
+
+    // Get UAN from dynamic custom fields
+    const uanField = salary.employee.customFields?.find(
+      (field) =>
+        field.label?.trim().toLowerCase() === "uan no",
+    );
+
+    const uanNumber = uanField?.value || "";
+
     res.status(200).json({
       success: true,
       salary,
+      employeeInfo: {
+        uanNumber,
+        joiningDate: salary.employee.joiningDate,
+      },
     });
+
+
+
+
+   
   } catch (error) {
     console.log(error);
 
@@ -313,7 +329,7 @@ export const generateSingleSalary = async (req, res) => {
   try {
     const { employeeId } = req.params;
 
-    const { month, year, pfPercentage = 12 } = req.body;
+    const { month, year } = req.body;
 
     if (!month || !year) {
       return res.status(400).json({
@@ -358,18 +374,20 @@ export const generateSingleSalary = async (req, res) => {
     );
 
     const calculation = await calculateEmployeeSalary({
-      employeeId: employee._id,
+  employeeId: employee._id,
 
-      grossSalary,
+  grossSalary,
 
-      month: Number(month),
+  month: Number(month),
 
-      year: Number(year),
+  year: Number(year),
 
-      pfPercentage: Number(pfPercentage),
+  pfApplicable: employee.pfApplicable,
 
-      earningConfigs,
-    });
+  pfPercentage: 12,
+
+  earningConfigs,
+});
 
     const deductions = [];
 
@@ -394,15 +412,19 @@ export const generateSingleSalary = async (req, res) => {
       });
     }
 
-    deductions.push({
-      label: `Employee PF (${calculation.pfPercentage}%)`,
-      amount: calculation.employeePF,
-    });
+  if (calculation.employeePF > 0) {
+  deductions.push({
+    label: `Employee PF (${calculation.pfPercentage}%)`,
+    amount: calculation.employeePF,
+  });
+}
 
-    deductions.push({
-      label: "Professional Tax",
-      amount: calculation.professionalTax,
-    });
+   if (calculation.professionalTax > 0) {
+  deductions.push({
+    label: "Professional Tax",
+    amount: calculation.professionalTax,
+  });
+}
 
   const totalDeductions = Number(
   calculation.totalDeduction.toFixed(2)
@@ -482,13 +504,26 @@ const netSalary = Number(
       netSalary,
     });
 
-    res.status(201).json({
-      success: true,
+   // Get UAN from dynamic custom fields
+const uanField = employee.customFields?.find(
+  (field) =>
+    field.label?.trim().toLowerCase() === "uan no",
+);
 
-      message: "Salary generated successfully",
+const uanNumber = uanField?.value || "";
 
-      salary,
-    });
+res.status(201).json({
+  success: true,
+
+  message: "Salary generated successfully",
+
+  salary,
+
+  employeeInfo: {
+    uanNumber,
+    joiningDate: employee.joiningDate,
+  },
+});
   } catch (error) {
     console.log(error);
 

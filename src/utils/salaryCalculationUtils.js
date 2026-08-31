@@ -30,8 +30,12 @@ export const calculateProfessionalTax = (salary) => {
   return 200;
 };
 
-export const calculatePF = (earnedBasicSalary, pfPercentage = 12) => {
-  const basicSalary = Number(earnedBasicSalary || 0);
+export const calculatePF = (
+  basicSalary,
+  pfApplicable = false,
+  pfPercentage = 12,
+) => {
+  const basic = Number(basicSalary || 0);
 
   let percentage = Number(pfPercentage);
 
@@ -41,15 +45,29 @@ export const calculatePF = (earnedBasicSalary, pfPercentage = 12) => {
 
   percentage = Math.min(Math.max(percentage, 0), 100);
 
-  const pfWage = Number(basicSalary.toFixed(2));
+  // PF not applicable
+  if (!pfApplicable) {
+    return {
+      pfApplicable: false,
+      pfPercentage: percentage,
+      pfWage: 0,
+      employeePF: 0,
+      employerPF: 0,
+    };
+  }
 
-  const employeePF = Number(((pfWage * percentage) / 100).toFixed(2));
+  // PF = Basic × 12%
+  const calculatedPF = (basic * percentage) / 100;
 
-  const employerPF = Number(((pfWage * percentage) / 100).toFixed(2));
+  // Maximum PF = ₹1,800
+  const employeePF = Number(Math.min(calculatedPF, 1800).toFixed(2));
+
+  const employerPF = employeePF;
 
   return {
+    pfApplicable: true,
     pfPercentage: percentage,
-    pfWage,
+    pfWage: Number(basic.toFixed(2)),
     employeePF,
     employerPF,
   };
@@ -124,6 +142,7 @@ export const calculateEmployeeSalary = async ({
   grossSalary,
   month,
   year,
+  pfApplicable = false,
   pfPercentage = 12,
   earningConfigs = [],
 }) => {
@@ -201,16 +220,27 @@ const earnedGrossSalary = Number(
   ).toFixed(2),
 );
 
+  
+  // EARNINGS FROM SALARY CONFIG
+
+
   const earnings = [];
 
   let totalEarnings = 0;
 
   let earnedBasicSalary = 0;
 
+  // SalaryConfig will be passed from controller
   for (const config of earningConfigs) {
     const percentage = Number(config.value || 0);
 
-    const amount = Number(((earnedGrossSalary * percentage) / 100).toFixed(2));
+    if (config.mode !== "% of gross") {
+      continue;
+    }
+
+    const amount = Number(
+      ((salary * percentage) / 100).toFixed(2)
+    );
 
     earnings.push({
       label: config.label,
@@ -220,16 +250,45 @@ const earnedGrossSalary = Number(
 
     totalEarnings += amount;
 
-    if (config.label.trim().toLowerCase() === "basic") {
+    if (
+      config.label.trim().toLowerCase() === "basic"
+    ) {
       earnedBasicSalary = amount;
     }
   }
 
-  totalEarnings = Number(totalEarnings.toFixed(2));
+  totalEarnings = Number(
+    totalEarnings.toFixed(2)
+  );
 
-  const pfCalculation = calculatePF(earnedBasicSalary, pfPercentage);
+  
+  // PF CALCULATION
+ 
 
-  const professionalTax = calculateProfessionalTax(earnedGrossSalary);
+const pfCalculation = calculatePF(
+  earnedBasicSalary,
+  pfApplicable,
+  pfPercentage
+);
+
+let finalEmployeePF = pfCalculation.employeePF;
+let finalEmployerPF = pfCalculation.employerPF;
+
+if (earnedGrossSalary < finalEmployeePF) {
+  finalEmployeePF = 0;
+  finalEmployerPF = 0;
+}
+
+  
+  // PROFESSIONAL TAX
+  
+
+ let finalProfessionalTax = 0;
+
+if (earnedGrossSalary > 0) {
+  finalProfessionalTax =
+    calculateProfessionalTax(earnedGrossSalary);
+}
 
   
 
@@ -238,8 +297,8 @@ const totalDeduction = Number(
     absentDeduction +
     leaveDeduction +
     attendanceCalculation.earlyCheckoutDeduction +
-    pfCalculation.employeePF +
-    professionalTax
+    finalEmployeePF +
+    finalProfessionalTax
   ).toFixed(2),
 );
 
@@ -288,15 +347,17 @@ const netSalary = Number(
 
     earnedBasicSalary,
 
+    pfApplicable: pfCalculation.pfApplicable,
+
     pfPercentage: pfCalculation.pfPercentage,
 
     pfWage: pfCalculation.pfWage,
 
-    employeePF: pfCalculation.employeePF,
+    employeePF: finalEmployeePF,
 
-    employerPF: pfCalculation.employerPF,
+    employerPF: finalEmployerPF,
 
-    professionalTax,
+  professionalTax: finalProfessionalTax,
 
     totalDeduction,
 

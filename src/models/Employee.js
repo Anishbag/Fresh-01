@@ -34,36 +34,14 @@ const employeeSchema = new mongoose.Schema(
       required: true,
     },
 
-    // role: {
-    //   type: String,
-    //   enum: [
-    //     "Developer",
-    //     "Designer",
-    //     "Manager",
-    //     "HR",
-    //     "QA",
-    //     "DevOps",
-    //     "Analyst",
-    //   ],
-    //   required: true,
-    // },
-
-    // role: {
-    //   type: String,
-    //   required: true,
-    // },
+   
 
     department: {
       type: String,
       required: true,
       trim: true,
     },
-    // new wass
-
-    // department: {
-    //   type: String,
-    //   required: true,
-    // },
+ 
 
     designation: {
       type: String,
@@ -76,6 +54,10 @@ const employeeSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    pfApplicable: {
+  type: Boolean,
+  default: true,
+},
 
     joiningDate: {
       type: Date,
