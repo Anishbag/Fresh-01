@@ -68,7 +68,7 @@ export const viewSalarySlip = async (req, res) => {
     const salary = await SalarySlip.findOne({
       _id: req.params.id,
       employee: employee._id,
-    }).populate("employee", "employeeId fullName department");
+    }).populate("employee", "employeeId fullName email phone department designation bankAccount",);
 
     if (!salary) {
       return res.status(404).json({
