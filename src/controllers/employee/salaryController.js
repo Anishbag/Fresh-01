@@ -23,12 +23,17 @@ export const mySalarySlips = async (req, res) => {
       });
     }
 
-    const salaries = await SalarySlip.find({
-      employee: employee._id,
-    }).sort({
-      year: -1,
-      month: -1,
-    });
+   const salaries = await SalarySlip.find({
+  employee: employee._id,
+})
+  .populate(
+    "employee",
+    "employeeId fullName email phone department designation bankAccount",
+  )
+  .sort({
+    year: -1,
+    month: -1,
+  });
 
     res.status(200).json({
       success: true,
