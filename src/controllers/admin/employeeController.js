@@ -25,6 +25,7 @@ export const createEmployee = async (req, res) => {
       address,
       status,
       customFields, //new wass
+      pfApplicable,
     } = req.body;
 
     const profileImage = req.file ? req.file.path : "";
@@ -66,13 +67,7 @@ export const createEmployee = async (req, res) => {
       isActive: status === "Active",
     });
 
-    // Generate Employee ID
-    // const totalEmployee = await Employee.countDocuments();
-
-    // const employeeId =
-    //   "EMP" + String(totalEmployee + 1).padStart(4, "0");
-
-    // Generate Employee ID
+   
     const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
 
     let employeeId = "EMP0001";
@@ -106,6 +101,7 @@ export const createEmployee = async (req, res) => {
       status,
       profileImage,
       customFields, // new wass
+      pfApplicable,
     });
 
     res.status(201).json({
@@ -225,6 +221,7 @@ export const updateEmployee = async (req, res) => {
       address,
       status,
       customFields, // new wass
+      pfApplicable,
     } = req.body;
 
     // Find Employee
@@ -286,6 +283,11 @@ export const updateEmployee = async (req, res) => {
     employee.emergencyContact = emergencyContact || employee.emergencyContact;
     employee.address = address || employee.address;
     employee.status = status || employee.status;
+
+
+    if (pfApplicable !== undefined) {
+  employee.pfApplicable = pfApplicable;
+}
 
     if (req.file) {
       employee.profileImage = req.file.path;

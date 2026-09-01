@@ -115,9 +115,9 @@ export const calculateAttendanceSalary = async (
 
     finalPaidMinutes += paidMinutes;
 
-   if (attendance.checkOut) {
-  earlyCheckoutMinutes += Math.max(540 - paidMinutes, 0);
-}
+    if (attendance.checkOut) {
+      earlyCheckoutMinutes += Math.max(540 - paidMinutes, 0);
+    }
   }
 
   const earlyCheckoutDeduction = Number(
@@ -194,35 +194,28 @@ export const calculateEmployeeSalary = async ({
 
   const paidAttendanceMinutes = attendanceCalculation.finalPaidMinutes;
 
-const paidLeaveMinutes = paidLeaveDays * 540;
+  const paidLeaveMinutes = paidLeaveDays * 540;
 
-const totalPaidMinutes =
-  paidAttendanceMinutes + paidLeaveMinutes;
+  const totalPaidMinutes = paidAttendanceMinutes + paidLeaveMinutes;
 
-const absentDeduction = Number(
-  (absentDays * 540 * perMinuteSalary).toFixed(2),
-);
+  const absentDeduction = Number(
+    (absentDays * 540 * perMinuteSalary).toFixed(2),
+  );
 
-const leaveDeduction = Number(
-  (unpaidLeaveDays * 540 * perMinuteSalary).toFixed(2),
-);
+  const leaveDeduction = Number(
+    (unpaidLeaveDays * 540 * perMinuteSalary).toFixed(2),
+  );
 
-const earlyCheckoutDeduction =
-  attendanceCalculation.earlyCheckoutDeduction;
+  const earlyCheckoutDeduction = attendanceCalculation.earlyCheckoutDeduction;
 
-const earnedGrossSalary = Number(
-  Math.max(
-    salary -
-      absentDeduction -
-      leaveDeduction -
-      earlyCheckoutDeduction,
-    0,
-  ).toFixed(2),
-);
+  const earnedGrossSalary = Number(
+    Math.max(
+      salary - absentDeduction - leaveDeduction - earlyCheckoutDeduction,
+      0,
+    ).toFixed(2),
+  );
 
-  
   // EARNINGS FROM SALARY CONFIG
-
 
   const earnings = [];
 
@@ -238,9 +231,7 @@ const earnedGrossSalary = Number(
       continue;
     }
 
-    const amount = Number(
-      ((salary * percentage) / 100).toFixed(2)
-    );
+    const amount = Number(((salary * percentage) / 100).toFixed(2));
 
     earnings.push({
       label: config.label,
@@ -250,61 +241,48 @@ const earnedGrossSalary = Number(
 
     totalEarnings += amount;
 
-    if (
-      config.label.trim().toLowerCase() === "basic"
-    ) {
+    if (config.label.trim().toLowerCase() === "basic") {
       earnedBasicSalary = amount;
     }
   }
 
-  totalEarnings = Number(
-    totalEarnings.toFixed(2)
+  totalEarnings = Number(totalEarnings.toFixed(2));
+
+  // PF CALCULATION
+
+  const pfCalculation = calculatePF(
+    earnedBasicSalary,
+    pfApplicable,
+    pfPercentage,
   );
 
-  
-  // PF CALCULATION
- 
+  let finalEmployeePF = pfCalculation.employeePF;
+  let finalEmployerPF = pfCalculation.employerPF;
 
-const pfCalculation = calculatePF(
-  earnedBasicSalary,
-  pfApplicable,
-  pfPercentage
-);
+  if (earnedGrossSalary < finalEmployeePF) {
+    finalEmployeePF = 0;
+    finalEmployerPF = 0;
+  }
 
-let finalEmployeePF = pfCalculation.employeePF;
-let finalEmployerPF = pfCalculation.employerPF;
-
-if (earnedGrossSalary < finalEmployeePF) {
-  finalEmployeePF = 0;
-  finalEmployerPF = 0;
-}
-
-  
   // PROFESSIONAL TAX
-  
 
- let finalProfessionalTax = 0;
+  let finalProfessionalTax = 0;
 
-if (earnedGrossSalary > 0) {
-  finalProfessionalTax =
-    calculateProfessionalTax(earnedGrossSalary);
-}
+  if (earnedGrossSalary > 0) {
+    finalProfessionalTax = calculateProfessionalTax(earnedGrossSalary);
+  }
 
-  
+  const totalDeduction = Number(
+    (
+      absentDeduction +
+      leaveDeduction +
+      attendanceCalculation.earlyCheckoutDeduction +
+      finalEmployeePF +
+      finalProfessionalTax
+    ).toFixed(2),
+  );
 
-const totalDeduction = Number(
-  (
-    absentDeduction +
-    leaveDeduction +
-    attendanceCalculation.earlyCheckoutDeduction +
-    finalEmployeePF +
-    finalProfessionalTax
-  ).toFixed(2),
-);
-
-const netSalary = Number(
-  Math.max(salary - totalDeduction, 0).toFixed(2),
-);
+  const netSalary = Number(Math.max(salary - totalDeduction, 0).toFixed(2));
 
   return {
     grossSalary: salary,
@@ -357,7 +335,7 @@ const netSalary = Number(
 
     employerPF: finalEmployerPF,
 
-  professionalTax: finalProfessionalTax,
+    professionalTax: finalProfessionalTax,
 
     totalDeduction,
 

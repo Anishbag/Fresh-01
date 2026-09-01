@@ -3,15 +3,12 @@ import Employee from "../../models/Employee.js";
 
 const getCustomFieldValue = (customFields, labels = []) => {
   const normalizedLabels = labels.map((label) =>
-    label.trim().toLowerCase().replace(/\s+/g, " ")
+    label.trim().toLowerCase().replace(/\s+/g, " "),
   );
 
   return (
     customFields?.find((field) => {
-      const fieldLabel = field.label
-        ?.trim()
-        .toLowerCase()
-        .replace(/\s+/g, " ");
+      const fieldLabel = field.label?.trim().toLowerCase().replace(/\s+/g, " ");
 
       return normalizedLabels.includes(fieldLabel);
     })?.value || ""
@@ -22,8 +19,6 @@ const getCustomFieldValue = (customFields, labels = []) => {
 
 export const mySalarySlips = async (req, res) => {
   try {
-   
-
     const employee = await Employee.findOne({
       userId: req.user._id,
       status: "Active",
@@ -36,17 +31,17 @@ export const mySalarySlips = async (req, res) => {
       });
     }
 
-   const salaries = await SalarySlip.find({
-  employee: employee._id,
-})
-  .populate(
-    "employee",
-    "employeeId fullName email phone department designation bankAccount joiningDate customFields",
-  )
-  .sort({
-    year: -1,
-    month: -1,
-  });
+    const salaries = await SalarySlip.find({
+      employee: employee._id,
+    })
+      .populate(
+        "employee",
+        "employeeId fullName email phone department designation bankAccount joiningDate customFields",
+      )
+      .sort({
+        year: -1,
+        month: -1,
+      });
 
     res.status(200).json({
       success: true,
@@ -61,13 +56,10 @@ export const mySalarySlips = async (req, res) => {
   }
 };
 
-
 //  Salary Slip Dekha
 
 export const viewSalarySlip = async (req, res) => {
   try {
-    
-
     const employee = await Employee.findOne({
       userId: req.user._id,
       status: "Active",
@@ -83,7 +75,10 @@ export const viewSalarySlip = async (req, res) => {
     const salary = await SalarySlip.findOne({
       _id: req.params.id,
       employee: employee._id,
-    }).populate("employee", "employeeId fullName email phone department designation bankAccount joiningDate customFields",);
+    }).populate(
+      "employee",
+      "employeeId fullName email phone department designation bankAccount joiningDate customFields",
+    );
 
     if (!salary) {
       return res.status(404).json({
@@ -92,7 +87,7 @@ export const viewSalarySlip = async (req, res) => {
       });
     }
 
-  const customFields = salary.employee?.customFields || [];
+    const customFields = salary.employee?.customFields || [];
 
     const employeeInfo = {
       uanNumber: getCustomFieldValue(customFields, [
@@ -126,11 +121,11 @@ export const viewSalarySlip = async (req, res) => {
       bankAccount: salary.employee?.bankAccount,
     };
 
-   res.status(200).json({
-  success: true,
-  salary,
-  employeeInfo,
-});
+    res.status(200).json({
+      success: true,
+      salary,
+      employeeInfo,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
