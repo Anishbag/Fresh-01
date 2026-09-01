@@ -1,6 +1,22 @@
 import SalarySlip from "../../models/SalarySlip.js";
 import Employee from "../../models/Employee.js";
 
+const getCustomFieldValue = (customFields, labels = []) => {
+  const normalizedLabels = labels.map((label) =>
+    label.trim().toLowerCase().replace(/\s+/g, " ")
+  );
+
+  return (
+    customFields?.find((field) => {
+      const fieldLabel = field.label
+        ?.trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+
+      return normalizedLabels.includes(fieldLabel);
+    })?.value || ""
+  );
+};
 
 // My Salary Slips
 
@@ -67,7 +83,7 @@ export const viewSalarySlip = async (req, res) => {
     const salary = await SalarySlip.findOne({
       _id: req.params.id,
       employee: employee._id,
-    }).populate("employee", "employeeId fullName email phone department designation bankAccount",);
+    }).populate("employee", "employeeId fullName email phone department designation bankAccount joiningDate customFields",);
 
     if (!salary) {
       return res.status(404).json({
@@ -76,10 +92,45 @@ export const viewSalarySlip = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      success: true,
-      salary,
-    });
+  const customFields = salary.employee?.customFields || [];
+
+    const employeeInfo = {
+      uanNumber: getCustomFieldValue(customFields, [
+        "UAN",
+        "UAN No",
+        "UAN Number",
+      ]),
+
+      esiNumber: getCustomFieldValue(customFields, [
+        "ESI",
+        "ESI No",
+        "ESI Number",
+      ]),
+
+      dob: getCustomFieldValue(customFields, [
+        "DOB",
+        "Date of Birth",
+        "Birth Date",
+        "Birthdate",
+      ]),
+
+      bankName: getCustomFieldValue(customFields, [
+        "Bank",
+        "Bank Name",
+        "Name Bank",
+        "Banking Name",
+      ]),
+
+      joiningDate: salary.employee?.joiningDate,
+
+      bankAccount: salary.employee?.bankAccount,
+    };
+
+   res.status(200).json({
+  success: true,
+  salary,
+  employeeInfo,
+});
   } catch (error) {
     res.status(500).json({
       success: false,

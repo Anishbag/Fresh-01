@@ -1,8 +1,26 @@
 import SalaryConfig from "../../models/SalaryConfig.js";
 import SalarySlip from "../../models/SalarySlip.js";
 import Employee from "../../models/Employee.js";
-
 import { calculateEmployeeSalary } from "../../utils/salaryCalculationUtils.js";
+
+const getCustomFieldValue = (customFields, labels = []) => {
+  const normalizedLabels = labels.map((label) =>
+    label.trim().toLowerCase().replace(/\s+/g, " ")
+  );
+
+  return (
+    customFields?.find((field) => {
+      const fieldLabel = field.label
+        ?.trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+
+      return normalizedLabels.includes(fieldLabel);
+    })?.value || ""
+  );
+};
+
+
 
 export const generateSalary = async (req, res) => {
   try {
@@ -294,22 +312,45 @@ export const getSalarySlip = async (req, res) => {
 
 
 
-    // Get UAN from dynamic custom fields
-    const uanField = salary.employee.customFields?.find(
-      (field) =>
-        field.label?.trim().toLowerCase() === "uan no",
-    );
+  const customFields = salary.employee?.customFields || [];
 
-    const uanNumber = uanField?.value || "";
+const employeeInfo = {
+  uanNumber: getCustomFieldValue(customFields, [
+    "UAN",
+    "UAN No",
+    "UAN Number",
+  ]),
 
-    res.status(200).json({
-      success: true,
-      salary,
-      employeeInfo: {
-        uanNumber,
-        joiningDate: salary.employee.joiningDate,
-      },
-    });
+  esiNumber: getCustomFieldValue(customFields, [
+    "ESI",
+    "ESI No",
+    "ESI Number",
+  ]),
+
+  dob: getCustomFieldValue(customFields, [
+    "DOB",
+    "Date of Birth",
+    "Birth Date",
+    "Birthdate",
+  ]),
+
+  bankName: getCustomFieldValue(customFields, [
+    "Bank",
+    "Bank Name",
+    "Name Bank",
+    "Banking Name",
+  ]),
+
+  joiningDate: salary.employee?.joiningDate,
+
+  bankAccount: salary.employee?.bankAccount,
+};
+
+   res.status(200).json({
+  success: true,
+  salary,
+  employeeInfo,
+});
 
 
 
@@ -505,25 +546,49 @@ const netSalary = Number(
     });
 
    // Get UAN from dynamic custom fields
-const uanField = employee.customFields?.find(
-  (field) =>
-    field.label?.trim().toLowerCase() === "uan no",
-);
 
-const uanNumber = uanField?.value || "";
+    const customFields = employee.customFields || [];
+
+const employeeInfo = {
+  uanNumber: getCustomFieldValue(customFields, [
+    "UAN",
+    "UAN No",
+    "UAN Number",
+  ]),
+
+  esiNumber: getCustomFieldValue(customFields, [
+    "ESI",
+    "ESI No",
+    "ESI Number",
+  ]),
+
+  dob: getCustomFieldValue(customFields, [
+    "DOB",
+    "Date of Birth",
+    "Birth Date",
+    "Birthdate",
+  ]),
+
+  bankName: getCustomFieldValue(customFields, [
+    "Bank",
+    "Bank Name",
+    "Name Bank",
+    "Banking Name",
+  ]),
+
+  joiningDate: employee.joiningDate,
+
+  bankAccount: employee.bankAccount,
+};
 
 res.status(201).json({
   success: true,
-
   message: "Salary generated successfully",
-
   salary,
-
-  employeeInfo: {
-    uanNumber,
-    joiningDate: employee.joiningDate,
-  },
+  employeeInfo,
 });
+
+
   } catch (error) {
     console.log(error);
 
