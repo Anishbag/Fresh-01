@@ -6,10 +6,7 @@ import Employee from "../../models/Employee.js";
 
 export const mySalarySlips = async (req, res) => {
   try {
-    // const employee = await Employee.findOne({
-    //   userId: req.user._id,
-    //   isDeleted: false,
-    // });
+   
 
     const employee = await Employee.findOne({
       userId: req.user._id,
@@ -28,7 +25,7 @@ export const mySalarySlips = async (req, res) => {
 })
   .populate(
     "employee",
-    "employeeId fullName email phone department designation bankAccount",
+    "employeeId fullName email phone department designation bankAccount joiningDate customFields",
   )
   .sort({
     year: -1,
@@ -53,10 +50,7 @@ export const mySalarySlips = async (req, res) => {
 
 export const viewSalarySlip = async (req, res) => {
   try {
-    // const employee = await Employee.findOne({
-    //   userId: req.user._id,
-    //   isDeleted: false,
-    // });
+    
 
     const employee = await Employee.findOne({
       userId: req.user._id,
