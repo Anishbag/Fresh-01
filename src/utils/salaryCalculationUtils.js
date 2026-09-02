@@ -152,12 +152,24 @@ export const calculateEmployeeSalary = async ({
     throw new Error("Gross salary cannot be negative.");
   }
 
-  const workingDays = await getWorkingDaysInMonth(month, year);
+  const { monthStart, monthEnd } = getMonthDateRange(month, year);
 
-  const totalAvailableMinutes = workingDays * 540;
+// Full calendar month days
+const totalCalendarDays = monthEnd.getDate();
 
-  const perMinuteSalary =
-    totalAvailableMinutes > 0 ? salary / totalAvailableMinutes : 0;
+// Salary is calculated based on full calendar month
+const perDaySalary =
+  totalCalendarDays > 0 ? salary / totalCalendarDays : 0;
+
+// 1 working day = 540 minutes
+const perMinuteSalary = perDaySalary / 540;
+
+// Working days are still required for attendance/absent calculation
+const workingDays = await getWorkingDaysInMonth(month, year);
+
+// This is informational only.
+// Salary divisor is NOT based on workingDays.
+const totalAvailableMinutes = totalCalendarDays * 540;
 
   const attendanceStatus = await ensureMonthlyAttendance(
     employeeId,
