@@ -2,6 +2,7 @@ import Attendance from "../../models/Attendance.js";
 import Employee from "../../models/Employee.js";
 import { isCompanyHoliday } from "../../utils/calendarUtils.js";
 import { getIndiaMinutes } from "../../utils/timeUtils.js";
+import Holiday from "../../models/Holiday.js";
 
 const getToday = () => {
   const today = new Date();
@@ -27,12 +28,33 @@ export const checkIn = async (req, res) => {
 
     const today = getToday();
 
-    if (isCompanyHoliday(today)) {
-      return res.status(400).json({
-        success: false,
-        message: "Today is a company holiday. Check-in is not allowed.",
-      });
-    }
+// Sunday / 1st & 3rd Saturday check
+if (isCompanyHoliday(today)) {
+  return res.status(400).json({
+    success: false,
+    message: "Today is a company holiday. Check-in is not allowed.",
+  });
+}
+
+// Admin holiday check korbe
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+
+const holiday = await Holiday.findOne({
+  date: {
+    $gte: today,
+    $lt: tomorrow,
+  },
+});
+
+if (holiday) {
+  return res.status(400).json({
+    success: false,
+    message: holiday.reason
+      ? `Today is a company holiday: ${holiday.reason}`
+      : "Today is a company holiday. Check-in is not allowed.",
+  });
+}
 
     const already = await Attendance.findOne({
       employee: employee._id,
@@ -46,13 +68,7 @@ export const checkIn = async (req, res) => {
       });
     }
 
-    // const checkInTime = new Date();
-
-    // const lateTime = new Date(checkInTime);
-
-    // lateTime.setHours(10, 20, 0, 0);
-
-    // const isLateCheckIn = checkInTime > lateTime;
+   
     const checkInTime = new Date();
 
     const currentIndiaMinutes = getIndiaMinutes(checkInTime);
@@ -127,6 +143,34 @@ export const checkOut = async (req, res) => {
     }
 
     const today = getToday();
+
+    // Sunday / 1st & 3rd Saturday check
+if (isCompanyHoliday(today)) {
+  return res.status(400).json({
+    success: false,
+    message: "Today is a company holiday. Check-out is not allowed.",
+  });
+}
+
+// Admin holiday 
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+
+const holiday = await Holiday.findOne({
+  date: {
+    $gte: today,
+    $lt: tomorrow,
+  },
+});
+
+if (holiday) {
+  return res.status(400).json({
+    success: false,
+    message: holiday.reason
+      ? `Today is a company holiday: ${holiday.reason}`
+      : "Today is a company holiday. Check-out is not allowed.",
+  });
+}
 
     const attendance = await Attendance.findOne({
       employee: employee._id,
