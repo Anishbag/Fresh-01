@@ -145,7 +145,7 @@ export const calculateEmployeeSalary = async ({
   month,
   year,
   pfApplicable = false,
-  pfPercentage = 12,
+  pfPercentage = 24,
   earningConfigs = [],
 }) => {
   const salary = Number(grossSalary || 0);
@@ -156,22 +156,21 @@ export const calculateEmployeeSalary = async ({
 
   const { monthStart, monthEnd } = getMonthDateRange(month, year);
 
-// Full calendar month days
-const totalCalendarDays = monthEnd.getDate();
+  // Full calendar month days
+  const totalCalendarDays = monthEnd.getDate();
 
-// Salary is calculated based on full calendar month
-const perDaySalary =
-  totalCalendarDays > 0 ? salary / totalCalendarDays : 0;
+  // Salary is calculated based on full calendar month
+  const perDaySalary = totalCalendarDays > 0 ? salary / totalCalendarDays : 0;
 
-// 1 working day = 540 minutes
-const perMinuteSalary = perDaySalary / 540;
+  // 1 working day = 540 minutes
+  const perMinuteSalary = perDaySalary / 540;
 
-// Working days are still required for attendance/absent calculation
-const workingDays = await getWorkingDaysInMonth(month, year);
+  // Working days are still required for attendance/absent calculation
+  const workingDays = await getWorkingDaysInMonth(month, year);
 
-// This is informational only.
-// Salary divisor is NOT based on workingDays.
-const totalAvailableMinutes = totalCalendarDays * 540;
+  // This is informational only.
+  // Salary divisor is NOT based on workingDays.
+  const totalAvailableMinutes = totalCalendarDays * 540;
 
   const attendanceStatus = await ensureMonthlyAttendance(
     employeeId,
@@ -198,6 +197,11 @@ const totalAvailableMinutes = totalCalendarDays * 540;
 
   const paidLeaveDays =
     leaveCalculation.paidCasualLeaveDays + leaveCalculation.paidSickLeaveDays;
+
+  const paidDays = Math.max(
+    totalCalendarDays - absentDays - unpaidLeaveDays,
+    0,
+  );
 
   const attendanceCalculation = await calculateAttendanceSalary(
     employeeId,
@@ -282,9 +286,9 @@ const totalAvailableMinutes = totalCalendarDays * 540;
 
   let finalProfessionalTax = 0;
 
-if (salary > 0) {
-  finalProfessionalTax = calculateProfessionalTax(salary);
-}
+  if (salary > 0) {
+    finalProfessionalTax = calculateProfessionalTax(salary);
+  }
 
   const totalDeduction = Number(
     (
@@ -303,7 +307,11 @@ if (salary > 0) {
 
     earnedGrossSalary,
 
+    payableDays: totalCalendarDays,
+
     workingDays,
+
+    paidDays,
 
     totalAvailableMinutes,
 
