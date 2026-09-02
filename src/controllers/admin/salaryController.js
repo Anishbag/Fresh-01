@@ -85,7 +85,7 @@ export const generateSalary = async (req, res) => {
   month: monthNumber,
   year: yearNumber,
   pfApplicable: employee.pfApplicable,
-  pfPercentage: 12,
+  pfPercentage: 24,
   earningConfigs,
 });
 
@@ -425,7 +425,7 @@ export const generateSingleSalary = async (req, res) => {
 
   pfApplicable: employee.pfApplicable,
 
-  pfPercentage: 12,
+  pfPercentage: 24,
 
   earningConfigs,
 });

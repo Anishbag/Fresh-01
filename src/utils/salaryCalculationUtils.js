@@ -33,14 +33,14 @@ export const calculateProfessionalTax = (salary) => {
 export const calculatePF = (
   basicSalary,
   pfApplicable = false,
-  pfPercentage = 12,
+  pfPercentage = 24,
 ) => {
   const basic = Number(basicSalary || 0);
 
   let percentage = Number(pfPercentage);
 
   if (Number.isNaN(percentage)) {
-    percentage = 12;
+    percentage = 24;
   }
 
   percentage = Math.min(Math.max(percentage, 0), 100);
@@ -56,18 +56,20 @@ export const calculatePF = (
     };
   }
 
-  // PF = Basic × 12%
-  const calculatedPF = (basic * percentage) / 100;
+  // Maximum PF wage = ₹15,000
+  const pfWage = Math.min(basic, 15000);
 
-  // Maximum PF = ₹1,800
-  const employeePF = Number(Math.min(calculatedPF, 1800).toFixed(2));
+  // PF = 24% of PF wage
+  const calculatedPF = (pfWage * percentage) / 100;
+
+  const employeePF = Number(calculatedPF.toFixed(2));
 
   const employerPF = employeePF;
 
   return {
     pfApplicable: true,
     pfPercentage: percentage,
-    pfWage: Number(basic.toFixed(2)),
+    pfWage: Number(pfWage.toFixed(2)),
     employeePF,
     employerPF,
   };
