@@ -5,22 +5,17 @@ import { calculateEmployeeSalary } from "../../utils/salaryCalculationUtils.js";
 
 const getCustomFieldValue = (customFields, labels = []) => {
   const normalizedLabels = labels.map((label) =>
-    label.trim().toLowerCase().replace(/\s+/g, " ")
+    label.trim().toLowerCase().replace(/\s+/g, " "),
   );
 
   return (
     customFields?.find((field) => {
-      const fieldLabel = field.label
-        ?.trim()
-        .toLowerCase()
-        .replace(/\s+/g, " ");
+      const fieldLabel = field.label?.trim().toLowerCase().replace(/\s+/g, " ");
 
       return normalizedLabels.includes(fieldLabel);
     })?.value || ""
   );
 };
-
-
 
 export const generateSalary = async (req, res) => {
   try {
@@ -73,21 +68,19 @@ export const generateSalary = async (req, res) => {
 
       const grossSalary = Number(employee.salary || 0);
 
-      
-
       const earningConfigs = configs.filter(
         (config) => config.type === "Earning",
       );
 
-    const calculation = await calculateEmployeeSalary({
-  employeeId: employee._id,
-  grossSalary,
-  month: monthNumber,
-  year: yearNumber,
-  pfApplicable: employee.pfApplicable,
-  pfPercentage: 24,
-  earningConfigs,
-});
+      const calculation = await calculateEmployeeSalary({
+        employeeId: employee._id,
+        grossSalary,
+        month: monthNumber,
+        year: yearNumber,
+        pfApplicable: employee.pfApplicable,
+        pfPercentage: 24,
+        earningConfigs,
+      });
 
       const deductions = [];
 
@@ -112,34 +105,27 @@ export const generateSalary = async (req, res) => {
         });
       }
 
-    if (calculation.employeePF > 0) {
-  deductions.push({
-    label: `Employee PF (${calculation.pfPercentage}%)`,
-    amount: calculation.employeePF,
-  });
-}
+      if (calculation.employeePF > 0) {
+        deductions.push({
+          label: `Employee PF (${calculation.pfPercentage}%)`,
+          amount: calculation.employeePF,
+        });
+      }
 
       if (calculation.professionalTax > 0) {
-  deductions.push({
-    label: "Professional Tax",
-    amount: calculation.professionalTax,
-  });
-}
+        deductions.push({
+          label: "Professional Tax",
+          amount: calculation.professionalTax,
+        });
+      }
 
-     const totalDeductions = Number(
-  calculation.totalDeduction.toFixed(2)
-);
+      const totalDeductions = Number(calculation.totalDeduction.toFixed(2));
 
-      const totalSalary = Number(
-  calculation.grossSalary.toFixed(2)
-);
+      const totalSalary = Number(calculation.grossSalary.toFixed(2));
 
-const netSalary = Number(
-  Math.max(
-    totalSalary - totalDeductions,
-    0
-  ).toFixed(2),
-);
+      const netSalary = Number(
+        Math.max(totalSalary - totalDeductions, 0).toFixed(2),
+      );
 
       await SalarySlip.create({
         employee: employee._id,
@@ -152,7 +138,11 @@ const netSalary = Number(
 
         grossSalary,
 
+        payableDays: calculation.payableDays,
+
         workingDays: calculation.workingDays,
+
+        paidDays: calculation.paidDays,
 
         earnedGrossSalary: calculation.earnedGrossSalary,
 
@@ -309,53 +299,45 @@ export const getSalarySlip = async (req, res) => {
       });
     }
 
+    const customFields = salary.employee?.customFields || [];
 
+    const employeeInfo = {
+      uanNumber: getCustomFieldValue(customFields, [
+        "UAN",
+        "UAN No",
+        "UAN Number",
+      ]),
 
+      esiNumber: getCustomFieldValue(customFields, [
+        "ESI",
+        "ESI No",
+        "ESI Number",
+      ]),
 
-  const customFields = salary.employee?.customFields || [];
+      dob: getCustomFieldValue(customFields, [
+        "DOB",
+        "Date of Birth",
+        "Birth Date",
+        "Birthdate",
+      ]),
 
-const employeeInfo = {
-  uanNumber: getCustomFieldValue(customFields, [
-    "UAN",
-    "UAN No",
-    "UAN Number",
-  ]),
+      bankName: getCustomFieldValue(customFields, [
+        "Bank",
+        "Bank Name",
+        "Name Bank",
+        "Banking Name",
+      ]),
 
-  esiNumber: getCustomFieldValue(customFields, [
-    "ESI",
-    "ESI No",
-    "ESI Number",
-  ]),
+      joiningDate: salary.employee?.joiningDate,
 
-  dob: getCustomFieldValue(customFields, [
-    "DOB",
-    "Date of Birth",
-    "Birth Date",
-    "Birthdate",
-  ]),
+      bankAccount: salary.employee?.bankAccount,
+    };
 
-  bankName: getCustomFieldValue(customFields, [
-    "Bank",
-    "Bank Name",
-    "Name Bank",
-    "Banking Name",
-  ]),
-
-  joiningDate: salary.employee?.joiningDate,
-
-  bankAccount: salary.employee?.bankAccount,
-};
-
-   res.status(200).json({
-  success: true,
-  salary,
-  employeeInfo,
-});
-
-
-
-
-   
+    res.status(200).json({
+      success: true,
+      salary,
+      employeeInfo,
+    });
   } catch (error) {
     console.log(error);
 
@@ -415,20 +397,20 @@ export const generateSingleSalary = async (req, res) => {
     );
 
     const calculation = await calculateEmployeeSalary({
-  employeeId: employee._id,
+      employeeId: employee._id,
 
-  grossSalary,
+      grossSalary,
 
-  month: Number(month),
+      month: Number(month),
 
-  year: Number(year),
+      year: Number(year),
 
-  pfApplicable: employee.pfApplicable,
+      pfApplicable: employee.pfApplicable,
 
-  pfPercentage: 24,
+      pfPercentage: 24,
 
-  earningConfigs,
-});
+      earningConfigs,
+    });
 
     const deductions = [];
 
@@ -453,34 +435,27 @@ export const generateSingleSalary = async (req, res) => {
       });
     }
 
-  if (calculation.employeePF > 0) {
-  deductions.push({
-    label: `Employee PF (${calculation.pfPercentage}%)`,
-    amount: calculation.employeePF,
-  });
-}
+    if (calculation.employeePF > 0) {
+      deductions.push({
+        label: `Employee PF (${calculation.pfPercentage}%)`,
+        amount: calculation.employeePF,
+      });
+    }
 
-   if (calculation.professionalTax > 0) {
-  deductions.push({
-    label: "Professional Tax",
-    amount: calculation.professionalTax,
-  });
-}
+    if (calculation.professionalTax > 0) {
+      deductions.push({
+        label: "Professional Tax",
+        amount: calculation.professionalTax,
+      });
+    }
 
-  const totalDeductions = Number(
-  calculation.totalDeduction.toFixed(2)
-);
+    const totalDeductions = Number(calculation.totalDeduction.toFixed(2));
 
-    const totalSalary = Number(
-  calculation.grossSalary.toFixed(2)
-);
+    const totalSalary = Number(calculation.grossSalary.toFixed(2));
 
-const netSalary = Number(
-  Math.max(
-    totalSalary - totalDeductions,
-    0
-  ).toFixed(2),
-);
+    const netSalary = Number(
+      Math.max(totalSalary - totalDeductions, 0).toFixed(2),
+    );
     const salary = await SalarySlip.create({
       employee: employee._id,
 
@@ -492,9 +467,13 @@ const netSalary = Number(
 
       grossSalary,
 
+      payableDays: calculation.payableDays,
+
       earnedGrossSalary: calculation.earnedGrossSalary,
 
       workingDays: calculation.workingDays,
+
+      paidDays: calculation.paidDays,
 
       totalAvailableMinutes: calculation.totalAvailableMinutes,
 
@@ -545,50 +524,48 @@ const netSalary = Number(
       netSalary,
     });
 
-   // Get UAN from dynamic custom fields
+    // Get UAN from dynamic custom fields
 
     const customFields = employee.customFields || [];
 
-const employeeInfo = {
-  uanNumber: getCustomFieldValue(customFields, [
-    "UAN",
-    "UAN No",
-    "UAN Number",
-  ]),
+    const employeeInfo = {
+      uanNumber: getCustomFieldValue(customFields, [
+        "UAN",
+        "UAN No",
+        "UAN Number",
+      ]),
 
-  esiNumber: getCustomFieldValue(customFields, [
-    "ESI",
-    "ESI No",
-    "ESI Number",
-  ]),
+      esiNumber: getCustomFieldValue(customFields, [
+        "ESI",
+        "ESI No",
+        "ESI Number",
+      ]),
 
-  dob: getCustomFieldValue(customFields, [
-    "DOB",
-    "Date of Birth",
-    "Birth Date",
-    "Birthdate",
-  ]),
+      dob: getCustomFieldValue(customFields, [
+        "DOB",
+        "Date of Birth",
+        "Birth Date",
+        "Birthdate",
+      ]),
 
-  bankName: getCustomFieldValue(customFields, [
-    "Bank",
-    "Bank Name",
-    "Name Bank",
-    "Banking Name",
-  ]),
+      bankName: getCustomFieldValue(customFields, [
+        "Bank",
+        "Bank Name",
+        "Name Bank",
+        "Banking Name",
+      ]),
 
-  joiningDate: employee.joiningDate,
+      joiningDate: employee.joiningDate,
 
-  bankAccount: employee.bankAccount,
-};
+      bankAccount: employee.bankAccount,
+    };
 
-res.status(201).json({
-  success: true,
-  message: "Salary generated successfully",
-  salary,
-  employeeInfo,
-});
-
-
+    res.status(201).json({
+      success: true,
+      message: "Salary generated successfully",
+      salary,
+      employeeInfo,
+    });
   } catch (error) {
     console.log(error);
 

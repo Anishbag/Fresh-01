@@ -31,10 +31,20 @@ const salarySlipSchema = new mongoose.Schema(
       min: 0,
     },
 
+    payableDays: {
+      type: Number,
+      default: 0,
+    },
+
     workingDays: {
       type: Number,
       default: 0,
       min: 0,
+    },
+
+    paidDays: {
+      type: Number,
+      default: 0,
     },
 
     totalAvailableMinutes: {
@@ -60,8 +70,6 @@ const salarySlipSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-
-    
 
     earnedGrossSalary: {
       type: Number,
@@ -135,11 +143,11 @@ const salarySlipSchema = new mongoose.Schema(
       min: 0,
     },
 
-    employerPF: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
+    // employerPF: {
+    //   type: Number,
+    //   default: 0,
+    //   min: 0,
+    // },
 
     professionalTax: {
       type: Number,
