@@ -282,9 +282,9 @@ const totalAvailableMinutes = totalCalendarDays * 540;
 
   let finalProfessionalTax = 0;
 
-  if (earnedGrossSalary > 0) {
-    finalProfessionalTax = calculateProfessionalTax(earnedGrossSalary);
-  }
+if (salary > 0) {
+  finalProfessionalTax = calculateProfessionalTax(salary);
+}
 
   const totalDeduction = Number(
     (
