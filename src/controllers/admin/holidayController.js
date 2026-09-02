@@ -1,4 +1,6 @@
 import Holiday from "../../models/Holiday.js";
+import Employee from "../../models/Employee.js";
+import Attendance from "../../models/Attendance.js";
 
 export const createHoliday = async (req, res) => {
   try {
@@ -11,6 +13,11 @@ export const createHoliday = async (req, res) => {
       });
     }
 
+    // Get all active employees
+    const employees = await Employee.find({
+      status: "Active",
+    }).select("_id");
+
     const holidays = [];
 
     for (const date of dates) {
@@ -22,12 +29,15 @@ export const createHoliday = async (req, res) => {
 
       holidayDate.setHours(0, 0, 0, 0);
 
+      // Check korbe holiday ache ki nah
       const existingHoliday = await Holiday.findOne({
         date: holidayDate,
       });
 
+      let holiday = existingHoliday;
+
       if (!existingHoliday) {
-        const holiday = await Holiday.create({
+        holiday = await Holiday.create({
           date: holidayDate,
           reason: reason || "",
           createdBy: req.user._id,
@@ -35,31 +45,65 @@ export const createHoliday = async (req, res) => {
 
         holidays.push(holiday);
       }
+
+      // Create / update Attendance for every active employee
+      for (const employee of employees) {
+        await Attendance.findOneAndUpdate(
+          {
+            employee: employee._id,
+            date: holidayDate,
+          },
+          {
+            $set: {
+              status: "Holiday",
+            },
+            $setOnInsert: {
+              employee: employee._id,
+              date: holidayDate,
+              checkIn: null,
+              checkOut: null,
+              workingMinutes: 0,
+              paidMinutes: 0,
+              workingHours: 0,
+              mode: "Office",
+              isLateCheckIn: false,
+              checkInRemark: "",
+              isEarlyCheckOut: false,
+              checkOutRemark: "",
+              adminApproved: false,
+              adminRemark: "",
+            },
+          },
+          {
+            upsert: true,
+            new: true,
+          },
+        );
+      }
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Holiday created successfully",
       total: holidays.length,
       holidays,
+      attendanceCreatedFor: employees.length,
     });
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
 
-
-// holiday dakher 
+// holiday dakher
 
 export const getHolidays = async (req, res) => {
   try {
-    const holidays = await Holiday.find()
-      .sort({ date: 1 });
+    const holidays = await Holiday.find().sort({ date: 1 });
 
     res.status(200).json({
       success: true,
@@ -75,7 +119,6 @@ export const getHolidays = async (req, res) => {
     });
   }
 };
-
 
 // holiday delete
 
