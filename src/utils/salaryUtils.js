@@ -1,13 +1,16 @@
 import Leave from "../models/Leave.js";
 import Attendance from "../models/Attendance.js";
+import Holiday from "../models/Holiday.js";
 
-export const isWorkingDay = (date) => {
+export const isWorkingDay = async (date) => {
   const day = date.getDay();
 
+ 
   if (day === 0) {
     return false;
   }
 
+ 
   if (day === 6) {
     const saturdayNumber = Math.ceil(date.getDate() / 7);
 
@@ -16,10 +19,28 @@ export const isWorkingDay = (date) => {
     }
   }
 
+  // Admin declared holiday
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const holiday = await Holiday.findOne({
+    date: {
+      $gte: startOfDay,
+      $lte: endOfDay,
+    },
+  });
+
+  if (holiday) {
+    return false;
+  }
+
   return true;
 };
 
-export const countWorkingDays = (fromDate, toDate) => {
+export const countWorkingDays = async (fromDate, toDate) => {
   let count = 0;
 
   const currentDate = new Date(fromDate);
@@ -29,7 +50,7 @@ export const countWorkingDays = (fromDate, toDate) => {
   endDate.setHours(0, 0, 0, 0);
 
   while (currentDate <= endDate) {
-    if (isWorkingDay(currentDate)) {
+    if (await isWorkingDay(currentDate)) {
       count++;
     }
 
@@ -56,10 +77,10 @@ export const getMonthDateRange = (month, year) => {
   };
 };
 
-export const getWorkingDaysInMonth = (month, year) => {
+export const getWorkingDaysInMonth = async (month, year) => {
   const { monthStart, monthEnd } = getMonthDateRange(month, year);
 
-  return countWorkingDays(monthStart, monthEnd);
+  return await countWorkingDays(monthStart, monthEnd);
 };
 
 export const calculateNormalLeaveDays = async (employeeId, month, year) => {
@@ -98,7 +119,7 @@ export const calculateNormalLeaveDays = async (employeeId, month, year) => {
       leaveEnd = new Date(monthEnd);
     }
 
-    unpaidLeaveDays += countWorkingDays(leaveStart, leaveEnd);
+    unpaidLeaveDays += await countWorkingDays(leaveStart, leaveEnd);
   }
 
   return unpaidLeaveDays;
@@ -143,7 +164,7 @@ export const calculatePaidAndUnpaidLeaves = async (employeeId, month, year) => {
       leaveEnd = new Date(monthEnd);
     }
 
-    const days = countWorkingDays(leaveStart, leaveEnd);
+    const days = await countWorkingDays(leaveStart, leaveEnd);
 
     if (leave.leaveType === "Casual") {
       casualLeaveDays += days;
@@ -190,14 +211,48 @@ export const ensureMonthlyAttendance = async (employeeId, month, year) => {
     const attendanceDate = new Date(currentDate);
     attendanceDate.setHours(0, 0, 0, 0);
 
-    if (isWorkingDay(attendanceDate)) {
-      const nextDate = new Date(attendanceDate);
+    const nextDate = new Date(attendanceDate);
+    nextDate.setDate(nextDate.getDate() + 1);
 
-      nextDate.setDate(nextDate.getDate() + 1);
+    // Check holiday
+    const holiday = await Holiday.findOne({
+      date: {
+        $gte: attendanceDate,
+        $lt: nextDate,
+      },
+    });
 
+    // If admin declared holiday
+    if (holiday) {
       const existingAttendance = await Attendance.findOne({
         employee: employeeId,
+        date: {
+          $gte: attendanceDate,
+          $lt: nextDate,
+        },
+      });
 
+      // If already Absent, convert it to Holiday
+      if (existingAttendance) {
+        existingAttendance.status = "Holiday";
+        await existingAttendance.save();
+      } else {
+        await Attendance.create({
+          employee: employeeId,
+          date: attendanceDate,
+          status: "Holiday",
+          mode: "Office",
+        });
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+      continue;
+    }
+
+    // Normal working day
+    if (await isWorkingDay(attendanceDate)) {
+      const existingAttendance = await Attendance.findOne({
+        employee: employeeId,
         date: {
           $gte: attendanceDate,
           $lt: nextDate,
@@ -207,13 +262,10 @@ export const ensureMonthlyAttendance = async (employeeId, month, year) => {
       if (!existingAttendance) {
         const approvedLeave = await Leave.findOne({
           employee: employeeId,
-
           status: "Approved",
-
           fromDate: {
             $lte: attendanceDate,
           },
-
           toDate: {
             $gte: attendanceDate,
           },

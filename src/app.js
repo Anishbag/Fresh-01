@@ -27,6 +27,7 @@ import employeeAdvanceRoutes from "./routes/employee/advanceRoutes.js";
 import employeeReimbursementRoutes from "./routes/employee/reimbursementRoutes.js";
 import adminReimbursementRoutes from "./routes/admin/reimbursementRoutes.js";
 import adminAdvanceRoutes from "./routes/admin/advanceRoutes.js";
+import adminHolidayRoutes from "./routes/admin/holidayRoutes.js";
 
 
 
@@ -94,5 +95,7 @@ app.use("/api/employee/reimbursement",employeeReimbursementRoutes);
 app.use("/api/admin/reimbursement",adminReimbursementRoutes);
 
 app.use("/api/admin/advance",adminAdvanceRoutes);
+
+app.use("/api/admin/holidays", adminHolidayRoutes);
 
 export default app;

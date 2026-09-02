@@ -152,7 +152,7 @@ export const calculateEmployeeSalary = async ({
     throw new Error("Gross salary cannot be negative.");
   }
 
-  const workingDays = getWorkingDaysInMonth(month, year);
+  const workingDays = await getWorkingDaysInMonth(month, year);
 
   const totalAvailableMinutes = workingDays * 540;
 
