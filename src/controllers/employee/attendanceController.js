@@ -28,33 +28,33 @@ export const checkIn = async (req, res) => {
 
     const today = getToday();
 
-// Sunday / 1st & 3rd Saturday check
-if (isCompanyHoliday(today)) {
-  return res.status(400).json({
-    success: false,
-    message: "Today is a company holiday. Check-in is not allowed.",
-  });
-}
+    // Sunday / 1st & 3rd Saturday check
+    if (isCompanyHoliday(today)) {
+      return res.status(400).json({
+        success: false,
+        message: "Today is a company holiday. Check-in is not allowed.",
+      });
+    }
 
-// Admin holiday check korbe
-const tomorrow = new Date(today);
-tomorrow.setDate(tomorrow.getDate() + 1);
+    // Admin holiday check korbe
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-const holiday = await Holiday.findOne({
-  date: {
-    $gte: today,
-    $lt: tomorrow,
-  },
-});
+    const holiday = await Holiday.findOne({
+      date: {
+        $gte: today,
+        $lt: tomorrow,
+      },
+    });
 
-if (holiday) {
-  return res.status(400).json({
-    success: false,
-    message: holiday.reason
-      ? `Today is a company holiday: ${holiday.reason}`
-      : "Today is a company holiday. Check-in is not allowed.",
-  });
-}
+    if (holiday) {
+      return res.status(400).json({
+        success: false,
+        message: holiday.reason
+          ? `Today is a company holiday: ${holiday.reason}`
+          : "Today is a company holiday. Check-in is not allowed.",
+      });
+    }
 
     const already = await Attendance.findOne({
       employee: employee._id,
@@ -68,7 +68,6 @@ if (holiday) {
       });
     }
 
-   
     const checkInTime = new Date();
 
     const currentIndiaMinutes = getIndiaMinutes(checkInTime);
@@ -105,7 +104,7 @@ if (holiday) {
       isEarlyCheckOut: false,
       checkOutRemark: "",
 
-      adminReviewed: false,
+      adminApproved: false,
       adminRemark: "",
     });
 
@@ -145,32 +144,32 @@ export const checkOut = async (req, res) => {
     const today = getToday();
 
     // Sunday / 1st & 3rd Saturday check
-if (isCompanyHoliday(today)) {
-  return res.status(400).json({
-    success: false,
-    message: "Today is a company holiday. Check-out is not allowed.",
-  });
-}
+    if (isCompanyHoliday(today)) {
+      return res.status(400).json({
+        success: false,
+        message: "Today is a company holiday. Check-out is not allowed.",
+      });
+    }
 
-// Admin holiday 
-const tomorrow = new Date(today);
-tomorrow.setDate(tomorrow.getDate() + 1);
+    // Admin holiday
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-const holiday = await Holiday.findOne({
-  date: {
-    $gte: today,
-    $lt: tomorrow,
-  },
-});
+    const holiday = await Holiday.findOne({
+      date: {
+        $gte: today,
+        $lt: tomorrow,
+      },
+    });
 
-if (holiday) {
-  return res.status(400).json({
-    success: false,
-    message: holiday.reason
-      ? `Today is a company holiday: ${holiday.reason}`
-      : "Today is a company holiday. Check-out is not allowed.",
-  });
-}
+    if (holiday) {
+      return res.status(400).json({
+        success: false,
+        message: holiday.reason
+          ? `Today is a company holiday: ${holiday.reason}`
+          : "Today is a company holiday. Check-out is not allowed.",
+      });
+    }
 
     const attendance = await Attendance.findOne({
       employee: employee._id,
@@ -197,19 +196,12 @@ if (holiday) {
 
     const workingMinutes = Math.floor(totalMilliseconds / (1000 * 60));
 
-    const paidMinutes = Math.min(workingMinutes, 540);
-
     const workingHours = Number((workingMinutes / 60).toFixed(2));
 
-    // const earlyCheckoutTime = new Date(checkOutTime);
-
-    // earlyCheckoutTime.setHours(18, 45, 0, 0);
-
-    // const isEarlyCheckOut =
-    //   checkOutTime < earlyCheckoutTime;
     const currentIndiaMinutes = getIndiaMinutes(checkOutTime);
 
-        const earlyCheckoutLimitMinutes = 18 * 60 + 45;
+    // 6:40 PM is the grace limit
+    const earlyCheckoutLimitMinutes = 18 * 60 + 40;
 
     const isEarlyCheckOut = currentIndiaMinutes < earlyCheckoutLimitMinutes;
 
@@ -221,6 +213,9 @@ if (holiday) {
         message: "You are checking out early. Please provide a remark.",
       });
     }
+
+    // Up to 6:40 PM = full 540 paid minutes
+    const paidMinutes = isEarlyCheckOut ? Math.min(workingMinutes, 540) : 540;
 
     // save attendance
 

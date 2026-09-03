@@ -1,4 +1,5 @@
 import Attendance from "../models/Attendance.js";
+import { getIndiaMinutes } from "./timeUtils.js";
 
 import {
   getMonthDateRange,
@@ -101,30 +102,81 @@ export const calculateAttendanceSalary = async (
   let finalPaidMinutes = 0;
 
   let earlyCheckoutMinutes = 0;
+  let lateCheckInMinutes = 0;
 
   for (const attendance of attendanceRecords) {
-    const actualMinutes = Math.max(Number(attendance.workingMinutes || 0), 0);
+  const actualMinutes = Math.max(
+    Number(attendance.workingMinutes || 0),
+    0,
+  );
 
-    actualWorkingMinutes += actualMinutes;
+  actualWorkingMinutes += actualMinutes;
 
-    let paidMinutes;
+  let paidMinutes = 540;
 
-    if (attendance.adminApproved) {
-      paidMinutes = Math.min(Number(attendance.adminApprovedMinutes || 0), 540);
-    } else {
-      paidMinutes = Math.min(actualMinutes, 540);
+  let lateMinutes = 0;
+
+  let earlyMinutes = 0;
+
+  
+  if (attendance.adminApproved) {
+    // Admin approve korle oi din kono deduction hobe na
+    paidMinutes = 540;
+  } else {
+       // LATE CHECK-IN
+    
+    if (attendance.isLateCheckIn && attendance.checkIn) {
+      const checkInIndiaMinutes = getIndiaMinutes(
+        attendance.checkIn,
+      );
+
+      const lateLimitMinutes = 10 * 60 + 20;
+
+      lateMinutes = Math.max(
+        checkInIndiaMinutes - lateLimitMinutes,
+        0,
+      );
+
+      lateCheckInMinutes += lateMinutes;
     }
 
-    finalPaidMinutes += paidMinutes;
+       // EARLY CHECK-OUT
+   
+    if (attendance.isEarlyCheckOut && attendance.checkOut) {
+      const checkOutIndiaMinutes = getIndiaMinutes(
+        attendance.checkOut,
+      );
 
-    if (attendance.checkOut) {
-      earlyCheckoutMinutes += Math.max(540 - paidMinutes, 0);
+      const earlyCheckoutLimitMinutes = 18 * 60 + 40;
+
+      earlyMinutes = Math.max(
+        earlyCheckoutLimitMinutes - checkOutIndiaMinutes,
+        0,
+      );
+
+      earlyCheckoutMinutes += earlyMinutes;
     }
+
+        // PAID MINUTES
+    
+    const deductionMinutes =
+      lateMinutes + earlyMinutes;
+
+    paidMinutes = Math.max(
+      540 - deductionMinutes,
+      0,
+    );
   }
 
-  const earlyCheckoutDeduction = Number(
-    (earlyCheckoutMinutes * perMinuteSalary).toFixed(2),
-  );
+  finalPaidMinutes += paidMinutes;
+}
+
+  const totalLateAndEarlyMinutes =
+  lateCheckInMinutes + earlyCheckoutMinutes;
+
+const earlyCheckoutDeduction = Number(
+  (totalLateAndEarlyMinutes * perMinuteSalary).toFixed(2),
+);
 
   return {
     attendanceRecords,
@@ -134,6 +186,8 @@ export const calculateAttendanceSalary = async (
     finalPaidMinutes,
 
     earlyCheckoutMinutes,
+
+    lateCheckInMinutes,
 
     earlyCheckoutDeduction,
   };

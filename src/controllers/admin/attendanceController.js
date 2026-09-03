@@ -2,11 +2,10 @@ import Attendance from "../../models/Attendance.js";
 
 export const getAllAttendance = async (req, res) => {
   try {
-    const {date,employeeId,late,early,} = req.query;
+    const { date, employeeId, late, early } = req.query;
 
     const query = {};
 
-    
     if (date) {
       const selectedDate = new Date(date);
 
@@ -21,25 +20,22 @@ export const getAllAttendance = async (req, res) => {
         $lt: nextDate,
       };
     }
-    
+
     if (employeeId) {
       query.employee = employeeId;
     }
-    
+
     if (late === "true") {
       query.isLateCheckIn = true;
     }
-    
+
     if (early === "true") {
       query.isEarlyCheckOut = true;
     }
 
     const attendance = await Attendance.find(query)
-      .populate(
-        "employee",
-        "employeeId fullName email department designation"
-      )
-      .sort({date: -1,createdAt: -1,});
+      .populate("employee", "employeeId fullName email department designation")
+      .sort({ date: -1, createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -56,12 +52,10 @@ export const getAllAttendance = async (req, res) => {
   }
 };
 
-
 export const adminOverrideAttendance = async (req, res) => {
   try {
     const { adminApprovedMinutes, adminRemark } = req.body;
 
-  
     const attendance = await Attendance.findById(req.params.id);
 
     if (!attendance) {
@@ -71,7 +65,6 @@ export const adminOverrideAttendance = async (req, res) => {
       });
     }
 
- 
     if (!attendance.checkIn) {
       return res.status(400).json({
         success: false,
@@ -79,11 +72,14 @@ export const adminOverrideAttendance = async (req, res) => {
       });
     }
 
-   
-    if (
-      adminApprovedMinutes === undefined ||
-      adminApprovedMinutes === null
-    ) {
+    if (attendance.status === "Holiday") {
+      return res.status(400).json({
+        success: false,
+        message: "Holiday attendance cannot be overridden.",
+      });
+    }
+
+    if (adminApprovedMinutes === undefined || adminApprovedMinutes === null) {
       return res.status(400).json({
         success: false,
         message: "Admin approved minutes are required.",
@@ -99,7 +95,6 @@ export const adminOverrideAttendance = async (req, res) => {
       });
     }
 
-   
     if (approvedMinutes < 0 || approvedMinutes > 540) {
       return res.status(400).json({
         success: false,
@@ -107,7 +102,6 @@ export const adminOverrideAttendance = async (req, res) => {
       });
     }
 
-  
     if (!adminRemark || adminRemark.trim() === "") {
       return res.status(400).json({
         success: false,
@@ -115,7 +109,6 @@ export const adminOverrideAttendance = async (req, res) => {
       });
     }
 
-  
     attendance.adminApproved = true;
 
     attendance.adminApprovedMinutes = approvedMinutes;
