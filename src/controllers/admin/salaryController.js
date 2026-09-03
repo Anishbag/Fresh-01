@@ -289,7 +289,7 @@ export const getSalarySlip = async (req, res) => {
   try {
     const salary = await SalarySlip.findById(req.params.id).populate(
       "employee",
-      "employeeId fullName email phone department designation bankAccount joiningDate customFields",
+      "employeeId fullName email phone department designation bankAccount joiningDate pan customFields",
     );
 
     if (!salary) {
@@ -302,6 +302,8 @@ export const getSalarySlip = async (req, res) => {
     const customFields = salary.employee?.customFields || [];
 
     const employeeInfo = {
+       panNumber: salary.employee?.pan || "",
+
       uanNumber: getCustomFieldValue(customFields, [
         "UAN",
         "UAN No",
@@ -529,6 +531,8 @@ export const generateSingleSalary = async (req, res) => {
     const customFields = employee.customFields || [];
 
     const employeeInfo = {
+       panNumber: employee.pan || "",
+       
       uanNumber: getCustomFieldValue(customFields, [
         "UAN",
         "UAN No",

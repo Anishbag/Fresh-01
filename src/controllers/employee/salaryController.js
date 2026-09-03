@@ -36,7 +36,7 @@ export const mySalarySlips = async (req, res) => {
     })
       .populate(
         "employee",
-        "employeeId fullName email phone department designation bankAccount joiningDate customFields",
+        "employeeId fullName email phone department designation bankAccount joiningDate pan customFields",
       )
       .sort({
         year: -1,
@@ -77,7 +77,7 @@ export const viewSalarySlip = async (req, res) => {
       employee: employee._id,
     }).populate(
       "employee",
-      "employeeId fullName email phone department designation bankAccount joiningDate customFields",
+      "employeeId fullName email phone department designation bankAccount joiningDate pan customFields",
     );
 
     if (!salary) {
@@ -90,6 +90,8 @@ export const viewSalarySlip = async (req, res) => {
     const customFields = salary.employee?.customFields || [];
 
     const employeeInfo = {
+      panNumber: salary.employee?.pan || "",
+
       uanNumber: getCustomFieldValue(customFields, [
         "UAN",
         "UAN No",
