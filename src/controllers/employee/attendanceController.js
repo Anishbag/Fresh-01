@@ -214,8 +214,29 @@ export const checkOut = async (req, res) => {
       });
     }
 
-    // Up to 6:40 PM = full 540 paid minutes
-    const paidMinutes = isEarlyCheckOut ? Math.min(workingMinutes, 540) : 540;
+    // Calculate late check-in minutes
+    const lateLimitMinutes = 10 * 60 + 20;
+
+    const checkInIndiaMinutes = attendance.checkIn
+      ? getIndiaMinutes(attendance.checkIn)
+      : lateLimitMinutes;
+
+    const lateCheckInMinutes = attendance.isLateCheckIn
+      ? Math.max(checkInIndiaMinutes - lateLimitMinutes, 0)
+      : 0;
+
+    // Calculate early checkout minutes
+    const earlyCheckoutMinutes = isEarlyCheckOut
+      ? Math.max(earlyCheckoutLimitMinutes - currentIndiaMinutes, 0)
+      : 0;
+
+    // Total salary deduction minutes
+    const totalDeductionMinutes = lateCheckInMinutes + earlyCheckoutMinutes;
+
+    // Admin approval = full 540 paid minutes
+    const paidMinutes = attendance.adminApproved
+      ? 540
+      : Math.max(540 - totalDeductionMinutes, 0);
 
     // save attendance
 
