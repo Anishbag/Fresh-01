@@ -72,6 +72,10 @@ export const generateSalary = async (req, res) => {
         (config) => config.type === "Earning",
       );
 
+      const deductionConfigs = configs.filter(
+  (config) => config.type === "Deduction",
+);
+
       const calculation = await calculateEmployeeSalary({
         employeeId: employee._id,
         grossSalary,
@@ -80,6 +84,7 @@ export const generateSalary = async (req, res) => {
         pfApplicable: employee.pfApplicable,
         pfPercentage: 24,
         earningConfigs,
+        deductionConfigs,
       });
 
       const deductions = [];
@@ -118,6 +123,9 @@ export const generateSalary = async (req, res) => {
           amount: calculation.professionalTax,
         });
       }
+      if (calculation.configurableDeductions?.length > 0) {
+  deductions.push(...calculation.configurableDeductions);
+}
 
       const totalDeductions = Number(calculation.totalDeduction.toFixed(2));
 
@@ -397,6 +405,9 @@ export const generateSingleSalary = async (req, res) => {
     const earningConfigs = configs.filter(
       (config) => config.type === "Earning",
     );
+    const deductionConfigs = configs.filter(
+  (config) => config.type === "Deduction",
+);
 
     const calculation = await calculateEmployeeSalary({
       employeeId: employee._id,
@@ -412,6 +423,8 @@ export const generateSingleSalary = async (req, res) => {
       pfPercentage: 24,
 
       earningConfigs,
+
+      deductionConfigs,
     });
 
     const deductions = [];
@@ -450,6 +463,9 @@ export const generateSingleSalary = async (req, res) => {
         amount: calculation.professionalTax,
       });
     }
+    if (calculation.configurableDeductions?.length > 0) {
+  deductions.push(...calculation.configurableDeductions);
+}
 
     const totalDeductions = Number(calculation.totalDeduction.toFixed(2));
 

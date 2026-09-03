@@ -147,6 +147,7 @@ export const calculateEmployeeSalary = async ({
   pfApplicable = false,
   pfPercentage = 24,
   earningConfigs = [],
+  deductionConfigs = [],
 }) => {
   const salary = Number(grossSalary || 0);
 
@@ -266,6 +267,35 @@ export const calculateEmployeeSalary = async ({
 
   totalEarnings = Number(totalEarnings.toFixed(2));
 
+  // CONFIG deduction hobe slary theke
+
+  const configurableDeductions = [];
+
+  let totalConfigurableDeductions = 0;
+
+  for (const config of deductionConfigs) {
+    const value = Number(config.value || 0);
+
+    let amount = 0;
+
+    if (config.mode === "Fixed") {
+      amount = value;
+    } else if (config.mode === "% of gross") {
+      amount = Number(((salary * value) / 100).toFixed(2));
+    }
+
+    if (amount > 0) {
+      configurableDeductions.push({
+        label: config.label,
+        amount,
+      });
+
+      totalConfigurableDeductions += amount;
+    }
+  }
+
+  totalConfigurableDeductions = Number(totalConfigurableDeductions.toFixed(2));
+
   // PF CALCULATION
 
   const pfCalculation = calculatePF(
@@ -296,7 +326,8 @@ export const calculateEmployeeSalary = async ({
       leaveDeduction +
       attendanceCalculation.earlyCheckoutDeduction +
       finalEmployeePF +
-      finalProfessionalTax
+      finalProfessionalTax +
+      totalConfigurableDeductions
     ).toFixed(2),
   );
 
@@ -358,6 +389,10 @@ export const calculateEmployeeSalary = async ({
     employerPF: finalEmployerPF,
 
     professionalTax: finalProfessionalTax,
+
+    configurableDeductions,
+
+    totalConfigurableDeductions,
 
     totalDeduction,
 
