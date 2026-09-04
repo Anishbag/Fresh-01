@@ -33,10 +33,30 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    forgotPasswordCount: {
+      type: Number,
+      default: 0,
+    },
+
+    forgotPasswordLastDate: {
+      type: Date,
+      default: null,
+    },
+
+    resetPasswordOtp: {
+      type: String,
+      default: "",
+    },
+
+    resetPasswordOtpExpires: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Hash Password Save Korar aage
